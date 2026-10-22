@@ -35,7 +35,7 @@ export const fresh = () => ({
   evidence: [],
   orders: [],
   attempt: null,
-  controlMode: "agent",
+  controlMode: "rules",
   agentExperiment: null,
   agentRuns: [],
   actionSource: null,
@@ -63,7 +63,10 @@ export function readState(storage) {
       )
     )
       return fresh();
-    return { ...fresh(), ...value };
+    const state = { ...fresh(), ...value };
+    if (state.controlMode !== "agent" || !state.agentExperiment?.token)
+      state.controlMode = "rules";
+    return state;
   } catch {
     return fresh();
   }

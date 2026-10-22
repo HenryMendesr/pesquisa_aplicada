@@ -27,7 +27,7 @@ mesma origem. [Guia de publicação](docs/vercel.md).
 
 Os pagamentos e falhas são controlados; nenhum valor é cobrado. Carrinho,
 comprovantes, avisos e evidências são locais ao navegador. O modo **Regras**
-funciona sem IA; o modo **Agente IA** exige configuração no servidor. O painel Docker anterior permanece em `presentation/docker.html`.
+é o padrão e funciona sem IA; o modo **Agente IA** exige configuração no servidor. O painel Docker anterior permanece em `presentation/docker.html`.
 
 - [PBL 8 — melhorias e avaliação](docs/pbl8-melhorias.md).
 - [PJBL 3 — construção, demonstração e evidências](docs/pjbl3-artefato.md).

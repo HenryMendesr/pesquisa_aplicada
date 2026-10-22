@@ -218,6 +218,7 @@ function render() {
     $("#" + id).disabled = busy || (id === "recover" && unknown);
   $("#export").disabled = busy;
   const agentMode = s.controlMode === "agent";
+  $("#control-mode option[value=agent]").disabled = !agentConfigured;
   $("#analyze").hidden = agentMode;
   if (!diagnosis)
     $("#diagnosis-mode").textContent = agentMode
@@ -458,7 +459,11 @@ $("#verify-agent").addEventListener("click", () =>
 fetch("/api/agent", { cache: "no-store" })
   .then((response) => response.json())
   .then((data) => {
-    agentConfigured = data.configured;
+    agentConfigured = Boolean(data.configured);
+    if (!agentConfigured && store.state.controlMode === "agent") {
+      store.state.controlMode = "rules";
+      store.save();
+    }
     $("#agent-status").textContent = agentConfigured
       ? data.model
       : "Não configurado";
@@ -466,6 +471,8 @@ fetch("/api/agent", { cache: "no-store" })
   })
   .catch(() => {
     $("#agent-status").textContent = "Indisponível";
+    store.state.controlMode = "rules";
+    store.save();
   });
 $("#analyze").addEventListener("click", () =>
   action(async () => {

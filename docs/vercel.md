@@ -1,7 +1,7 @@
 # Publicar e executar na Vercel
 
 Para o modo com ferramentas e ações do agente, consulte [Agente IA](agente-ia.md).
-A tela inicia nesse modo; selecione **Regras** para executar os cenários sem LLM.
+A tela inicia em **Regras**, com os cenários disponíveis sem LLM. O modo **Agente IA** fica disponível quando o servidor está configurado.
 
 A versão 2 funciona sem VPS: HTML e funções Node de pagamento sandbox ficam na
 Vercel. Não usa banco, Docker ou Neon para a demonstração de compra. Carrinho,
