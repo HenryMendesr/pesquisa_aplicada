@@ -91,6 +91,118 @@ const store = new Store({
   changed: () => render(),
 });
 let storageWarningShown = false;
+function eventView(e) {
+  const labels = {
+    cart_item_added: [
+      "Produto adicionado",
+      "Item salvo no carrinho.",
+      "Carrinho",
+    ],
+    cart_item_removed: ["Produto removido", "Carrinho atualizado.", "Carrinho"],
+    experiment_scenario_changed: [
+      "Cenário selecionado",
+      {
+        normal: "Operação normal",
+        outage: "Falha no pagamento",
+        slow: "Resposta perdida",
+        declined: "Pagamento recusado",
+      }[e.details] || "Condição de teste alterada.",
+      "Cenário",
+    ],
+    fault_injected: [
+      "Condição aplicada",
+      "Cenário enviado ao experimento do agente.",
+      "Cenário",
+    ],
+    circuit_opened: [
+      "Pagamento isolado",
+      "Novas compras suspensas. Catálogo e carrinho preservados.",
+      "Proteção",
+    ],
+    circuit_closed: [
+      "Pagamento liberado",
+      "Recuperação validada antes da liberação do checkout.",
+      "Recuperação",
+    ],
+    checkout_blocked: [
+      "Nova compra bloqueada",
+      "A proteção evitou outra chamada ao serviço indisponível.",
+      "Proteção",
+    ],
+    order_confirmed: [
+      "Compra confirmada",
+      "Pagamento aprovado e comprovante registrado.",
+      "Aprovado",
+    ],
+    recovery_notice_created: [
+      "Aviso de recuperação criado",
+      "O comprador já pode retomar a compra.",
+      "Recuperação",
+    ],
+    payment_response_lost: [
+      "Resposta da compra perdida",
+      "Resultado pendente. Consulte a tentativa antes de pagar novamente.",
+      "Pendente",
+    ],
+    payment_transport_error: [
+      "API sem resposta",
+      "Não foi possível confirmar o resultado da chamada.",
+      "Sem resposta",
+    ],
+    experiment_connected: [
+      "IA ativada",
+      "Experimento conectado para análise dos cenários.",
+      "IA",
+    ],
+    agent_completed: [
+      "Análise da IA concluída",
+      "Execução registrada com observações e decisão.",
+      "IA",
+    ],
+    agent_failed: [
+      "Análise da IA interrompida",
+      "Nenhuma ação desta execução foi aplicada.",
+      "IA",
+    ],
+  };
+  let [title, text, badge] = labels[e.event] || [
+    "Evento registrado",
+    "Registro disponível nos dados do evento.",
+    "Registro",
+  ];
+  if (["payment_pay", "payment_probe", "payment_reconcile"].includes(e.event)) {
+    title = {
+      payment_pay: "Tentativa de pagamento",
+      payment_probe: "Verificação do pagamento",
+      payment_reconcile: "Consulta da tentativa original",
+    }[e.event];
+    text =
+      {
+        200:
+          e.event === "payment_probe"
+            ? "Serviço respondeu disponível."
+            : "API confirmou o pagamento.",
+        402: "Pagamento recusado. O serviço continua disponível.",
+        503: "Serviço indisponível. Falha técnica confirmada.",
+        504: "Tempo de resposta excedido. O resultado da compra exige consulta.",
+        423: "Checkout isolado. A compra foi bloqueada no servidor.",
+      }[e.status] || "Resposta da API registrada.";
+  }
+  const kind =
+    e.status >= 500 ||
+    ["circuit_opened", "payment_transport_error", "agent_failed"].includes(
+      e.event,
+    )
+      ? "error"
+      : e.status === 402 ||
+          ["checkout_blocked", "payment_response_lost"].includes(e.event)
+        ? "warning"
+        : e.status === 200 ||
+            ["order_confirmed", "recovery_notice_created"].includes(e.event)
+          ? "success"
+          : "neutral";
+  return { title, text, badge, kind };
+}
 function render() {
   const s = store.state,
     blocked = s.breaker !== "closed",
@@ -159,15 +271,85 @@ function render() {
     closed: "Fechado · compra liberada",
   }[s.breaker];
   $("#circuit-dot").className = "status-dot " + (blocked ? "bad" : "ok");
+  const latestPayment = s.evidence.findLast((e) =>
+    ["payment_pay", "payment_reconcile"].includes(e.event),
+  );
   $("#notifications").innerHTML = s.notices
-    .slice(-3)
+    .filter((n) => !latestPayment || n.at > latestPayment.timestamp)
+    .slice(-1)
     .map(
       (n) =>
         `<div class="notification"><span>✓</span><div>${esc(n.text)}<small>Aviso de recuperação · ${time(n.at)}</small></div></div>`,
     )
     .join("");
-  $("#order-result").innerHTML = s.orders.length
-    ? `<div class="order-success"><b>Compra confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)}</div>`
+  const latestResult = s.evidence.findLast((e) =>
+    [
+      "payment_pay",
+      "payment_reconcile",
+      "order_confirmed",
+      "cart_item_added",
+      "cart_item_removed",
+      "experiment_scenario_changed",
+      "fault_injected",
+      "circuit_closed",
+    ].includes(e.event),
+  );
+  let paymentResult = null;
+  if (latestResult?.event === "order_confirmed" && s.orders.length) {
+    const order = s.orders.at(-1);
+    paymentResult = {
+      kind: "success",
+      icon: "✓",
+      title: "Pagamento aprovado",
+      text: `${money(order.total)} · Compra confirmada`,
+      code: "HTTP 200",
+      receipt: order.receiptId,
+    };
+  } else if (
+    ["payment_pay", "payment_reconcile"].includes(latestResult?.event)
+  ) {
+    if (latestResult.status === 402)
+      paymentResult = {
+        kind: "declined",
+        icon: "×",
+        title: "Pagamento recusado",
+        text: "A compra não foi concluída. Seus itens continuam no carrinho.",
+        code: "HTTP 402 · Serviço disponível",
+      };
+    else if (latestResult.status >= 400)
+      paymentResult = {
+        kind: "error",
+        icon: "!",
+        title: "Pagamento não concluído",
+        text: "Seus itens continuam no carrinho.",
+        code: `HTTP ${latestResult.status}`,
+      };
+  } else if (latestResult?.event === "circuit_closed")
+    paymentResult = {
+      kind: "success",
+      icon: "↻",
+      title: "Pagamento disponível novamente",
+      text: "Verificação concluída. Você já pode retomar a compra.",
+      code: "Checkout liberado",
+    };
+  if (blocked && latestResult?.event !== "order_confirmed")
+    paymentResult = {
+      kind: "error",
+      icon: "!",
+      title: "Pagamento indisponível",
+      text: "A compra está suspensa. Seus itens estão salvos.",
+      code: "Checkout protegido",
+    };
+  if (unknown)
+    paymentResult = {
+      kind: "pending",
+      icon: "◷",
+      title: "Pagamento sem confirmação",
+      text: "Consulte o resultado antes de tentar pagar novamente.",
+      code: "Consulta necessária",
+    };
+  $("#order-result").innerHTML = paymentResult
+    ? `<div class="payment-result ${paymentResult.kind}"><div class="payment-result-heading"><span class="payment-result-icon" aria-hidden="true">${paymentResult.icon}</span><h3>${esc(paymentResult.title)}</h3></div><p>${esc(paymentResult.text)}</p><strong>${esc(paymentResult.code)}</strong>${paymentResult.receipt ? `<details><summary>Ver comprovante</summary><code>${esc(paymentResult.receipt)}</code></details>` : ""}</div>`
     : "";
   $("#event-count").textContent = `${s.evidence.length} eventos`;
   $("#metric-evidence").textContent = `${s.evidence.length} eventos`;
@@ -254,12 +436,12 @@ function render() {
     ? s.evidence
         .slice()
         .reverse()
-        .map(
-          (e) =>
-            `<article class="event" id="event-${esc(e.id)}"><time>${time(e.timestamp)}</time><div><b>${esc(e.event)}</b><p>${esc(e.details)}</p><code>${esc(e.id)}</code></div>${e.status ? `<span class="http ${e.status >= 400 ? "bad" : ""}">${esc(e.status)}</span>` : ""}</article>`,
-        )
+        .map((e) => {
+          const view = eventView(e);
+          return `<article class="event evidence-event ${view.kind}" id="event-${esc(e.id)}"><time>${time(e.timestamp)}</time><div><b>${esc(view.title)}</b><p>${esc(view.text)}</p><details><summary>Dados do evento</summary><code>${esc(e.event)}</code><p>${esc(e.details)}</p><code>${esc(e.id)}</code></details></div><span class="event-badge ${view.kind}">${e.status ? `HTTP ${esc(e.status)}` : esc(view.badge)}</span></article>`;
+        })
         .join("")
-    : '<p class="empty-cart">As evidências da sua sessão aparecerão aqui.</p>';
+    : '<div class="evidence-empty">Nenhuma execução registrada.</div>';
   document.querySelectorAll("[data-scenario]").forEach((button) => {
     button.classList.toggle("active", button.dataset.scenario === s.scenario);
     button.disabled = busy || unknown;

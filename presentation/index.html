@@ -1990,6 +1990,213 @@ a:hover {
   min-height: 52px;
 }
 
+.payment-result {
+  margin: 20px 0;
+  padding: 22px;
+  border: 2px solid;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+.payment-result-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.payment-result-heading h3 {
+  font-size: 22px;
+  line-height: 1.25;
+  margin: 0;
+}
+.payment-result-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 25px;
+  font-weight: 700;
+  background: #ffffff80;
+}
+.payment-result p {
+  font-size: 16px;
+  line-height: 1.55;
+  margin: 14px 0;
+}
+.payment-result > strong {
+  display: block;
+  font-size: 13px;
+}
+.payment-result.declined,
+.payment-result.error {
+  background: #fff0ed;
+  border-color: #cf6d59;
+  color: #873b2a;
+}
+.payment-result.pending {
+  background: #fff5d9;
+  border-color: #c7982d;
+  color: #72520b;
+}
+.payment-result.success {
+  background: #edf6e3;
+  border-color: #7da25c;
+  color: #345526;
+}
+.payment-result details {
+  margin-top: 14px;
+  font-size: 13px;
+}
+.payment-result summary {
+  cursor: pointer;
+}
+.payment-result code {
+  display: block;
+  margin-top: 10px;
+}
+.application-demo .payment-notice,
+.application-demo .payment-notice button {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.application-demo .checkout {
+  font-size: 16px;
+  min-height: 56px;
+}
+
+.evidence-section {
+  border: 1px solid #ccdac4;
+  border-top: 5px solid #79965e;
+  border-radius: 18px;
+  padding: 28px;
+  background: #edf2e7;
+  margin: 32px 0;
+}
+.evidence-section .section-heading {
+  margin: 26px 0;
+}
+.evidence-section #export {
+  background: #214b3b;
+  color: white;
+  border-radius: 9px;
+  padding: 13px 18px;
+  font-size: 14px;
+}
+.evidence-section .timeline-panel,
+.evidence-section .diagnosis-panel {
+  padding: 24px;
+}
+.evidence-section .panel-heading h3 {
+  font-size: 22px;
+}
+.evidence-section .timeline {
+  max-height: 600px;
+}
+.evidence-event {
+  border-left: 4px solid #c6d3bd;
+  padding: 18px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #f7f9f3;
+  grid-template-columns: 65px minmax(0, 1fr) auto;
+  gap: 14px;
+}
+.evidence-event.error {
+  border-left-color: #c96650;
+  background: #fff4ef;
+}
+.evidence-event.warning {
+  border-left-color: #bf912e;
+  background: #fff9e9;
+}
+.evidence-event.success {
+  border-left-color: #69934d;
+}
+.evidence-event b {
+  font-size: 17px;
+}
+.evidence-event p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #43594b;
+  margin: 8px 0;
+}
+.evidence-event time {
+  font-size: 12px;
+  color: #516657;
+  padding-top: 3px;
+}
+.evidence-event details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #52674b;
+}
+.evidence-event details {
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+.evidence-event code {
+  font-size: 12px;
+}
+.event-badge {
+  align-self: start;
+  border-radius: 6px;
+  background: #e5ebdf;
+  padding: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.event-badge.error {
+  background: #f9d9cd;
+  color: #893d29;
+}
+.event-badge.warning {
+  background: #f5e3b0;
+  color: #70500b;
+}
+.event-badge.success {
+  background: #dfedce;
+  color: #375627;
+}
+.evidence-empty {
+  padding: 30px;
+  font-size: 16px;
+  color: #50664e;
+}
+.evidence-section .diagnosis-panel > p {
+  font-size: 16px;
+  line-height: 1.7;
+}
+@media (max-width: 720px) {
+  .evidence-section {
+    padding: 18px 12px;
+  }
+  .evidence-section .section-heading {
+    align-items: flex-start;
+    gap: 14px;
+    flex-direction: column;
+  }
+  .evidence-section .timeline-panel,
+  .evidence-section .diagnosis-panel {
+    padding: 16px;
+  }
+  .evidence-event {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 14px 10px;
+  }
+  .evidence-event time {
+    grid-column: 1/-1;
+  }
+  .evidence-event b {
+    font-size: 16px;
+  }
+  .evidence-event p {
+    font-size: 14px;
+  }
+}
+
     </style>
   </head>
   <body>
@@ -2139,8 +2346,11 @@ a:hover {
           </article>
         </div>
       </section>
-      <details class="evidence-section" id="evidence">
-        <summary>Evidências da execução</summary>
+      <section
+        class="evidence-section"
+        id="evidence"
+        aria-labelledby="evidence-title"
+      >
         <section
           class="experiment-metrics"
           aria-label="Resumo observado"
@@ -2165,11 +2375,9 @@ a:hover {
 
         <div class="section-heading">
           <div>
-            <h2>Respostas e eventos</h2>
+            <h2 id="evidence-title">Evidências da execução</h2>
           </div>
-          <button id="export" class="text-btn">
-            ↓ Exportar relatório JSON
-          </button>
+          <button id="export" class="text-btn">↓ Baixar evidências</button>
         </div>
         <div class="evidence-layout">
           <div class="timeline-panel">
@@ -2191,7 +2399,7 @@ a:hover {
             </button>
           </div>
         </div>
-      </details>
+      </section>
       <details class="application-demo" id="application">
         <summary>
           <div>
@@ -2216,6 +2424,12 @@ a:hover {
             </div>
             <div id="cart-items"></div>
             <div id="payment-notice" class="payment-notice" hidden></div>
+            <div
+              id="order-result"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></div>
             <div class="cart-total">
               <span>Total</span><strong id="cart-total">R$ 0,00</strong>
             </div>
@@ -2224,8 +2438,6 @@ a:hover {
             ><button id="reconcile" class="secondary" hidden>
               Consultar pagamento pendente
             </button>
-
-            <div id="order-result" role="status"></div>
           </aside>
         </div>
         <section
@@ -2763,6 +2975,118 @@ const store = new Store({
   changed: () => render(),
 });
 let storageWarningShown = false;
+function eventView(e) {
+  const labels = {
+    cart_item_added: [
+      "Produto adicionado",
+      "Item salvo no carrinho.",
+      "Carrinho",
+    ],
+    cart_item_removed: ["Produto removido", "Carrinho atualizado.", "Carrinho"],
+    experiment_scenario_changed: [
+      "Cenário selecionado",
+      {
+        normal: "Operação normal",
+        outage: "Falha no pagamento",
+        slow: "Resposta perdida",
+        declined: "Pagamento recusado",
+      }[e.details] || "Condição de teste alterada.",
+      "Cenário",
+    ],
+    fault_injected: [
+      "Condição aplicada",
+      "Cenário enviado ao experimento do agente.",
+      "Cenário",
+    ],
+    circuit_opened: [
+      "Pagamento isolado",
+      "Novas compras suspensas. Catálogo e carrinho preservados.",
+      "Proteção",
+    ],
+    circuit_closed: [
+      "Pagamento liberado",
+      "Recuperação validada antes da liberação do checkout.",
+      "Recuperação",
+    ],
+    checkout_blocked: [
+      "Nova compra bloqueada",
+      "A proteção evitou outra chamada ao serviço indisponível.",
+      "Proteção",
+    ],
+    order_confirmed: [
+      "Compra confirmada",
+      "Pagamento aprovado e comprovante registrado.",
+      "Aprovado",
+    ],
+    recovery_notice_created: [
+      "Aviso de recuperação criado",
+      "O comprador já pode retomar a compra.",
+      "Recuperação",
+    ],
+    payment_response_lost: [
+      "Resposta da compra perdida",
+      "Resultado pendente. Consulte a tentativa antes de pagar novamente.",
+      "Pendente",
+    ],
+    payment_transport_error: [
+      "API sem resposta",
+      "Não foi possível confirmar o resultado da chamada.",
+      "Sem resposta",
+    ],
+    experiment_connected: [
+      "IA ativada",
+      "Experimento conectado para análise dos cenários.",
+      "IA",
+    ],
+    agent_completed: [
+      "Análise da IA concluída",
+      "Execução registrada com observações e decisão.",
+      "IA",
+    ],
+    agent_failed: [
+      "Análise da IA interrompida",
+      "Nenhuma ação desta execução foi aplicada.",
+      "IA",
+    ],
+  };
+  let [title, text, badge] = labels[e.event] || [
+    "Evento registrado",
+    "Registro disponível nos dados do evento.",
+    "Registro",
+  ];
+  if (["payment_pay", "payment_probe", "payment_reconcile"].includes(e.event)) {
+    title = {
+      payment_pay: "Tentativa de pagamento",
+      payment_probe: "Verificação do pagamento",
+      payment_reconcile: "Consulta da tentativa original",
+    }[e.event];
+    text =
+      {
+        200:
+          e.event === "payment_probe"
+            ? "Serviço respondeu disponível."
+            : "API confirmou o pagamento.",
+        402: "Pagamento recusado. O serviço continua disponível.",
+        503: "Serviço indisponível. Falha técnica confirmada.",
+        504: "Tempo de resposta excedido. O resultado da compra exige consulta.",
+        423: "Checkout isolado. A compra foi bloqueada no servidor.",
+      }[e.status] || "Resposta da API registrada.";
+  }
+  const kind =
+    e.status >= 500 ||
+    ["circuit_opened", "payment_transport_error", "agent_failed"].includes(
+      e.event,
+    )
+      ? "error"
+      : e.status === 402 ||
+          ["checkout_blocked", "payment_response_lost"].includes(e.event)
+        ? "warning"
+        : e.status === 200 ||
+            ["order_confirmed", "recovery_notice_created"].includes(e.event)
+          ? "success"
+          : "neutral";
+  return { title, text, badge, kind };
+}
 function render() {
   const s = store.state,
     blocked = s.breaker !== "closed",
@@ -2831,15 +3155,85 @@ function render() {
     closed: "Fechado · compra liberada",
   }[s.breaker];
   $("#circuit-dot").className = "status-dot " + (blocked ? "bad" : "ok");
+  const latestPayment = s.evidence.findLast((e) =>
+    ["payment_pay", "payment_reconcile"].includes(e.event),
+  );
   $("#notifications").innerHTML = s.notices
-    .slice(-3)
+    .filter((n) => !latestPayment || n.at > latestPayment.timestamp)
+    .slice(-1)
     .map(
       (n) =>
         `<div class="notification"><span>✓</span><div>${esc(n.text)}<small>Aviso de recuperação · ${time(n.at)}</small></div></div>`,
     )
     .join("");
-  $("#order-result").innerHTML = s.orders.length
-    ? `<div class="order-success"><b>Compra confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)}</div>`
+  const latestResult = s.evidence.findLast((e) =>
+    [
+      "payment_pay",
+      "payment_reconcile",
+      "order_confirmed",
+      "cart_item_added",
+      "cart_item_removed",
+      "experiment_scenario_changed",
+      "fault_injected",
+      "circuit_closed",
+    ].includes(e.event),
+  );
+  let paymentResult = null;
+  if (latestResult?.event === "order_confirmed" && s.orders.length) {
+    const order = s.orders.at(-1);
+    paymentResult = {
+      kind: "success",
+      icon: "✓",
+      title: "Pagamento aprovado",
+      text: `${money(order.total)} · Compra confirmada`,
+      code: "HTTP 200",
+      receipt: order.receiptId,
+    };
+  } else if (
+    ["payment_pay", "payment_reconcile"].includes(latestResult?.event)
+  ) {
+    if (latestResult.status === 402)
+      paymentResult = {
+        kind: "declined",
+        icon: "×",
+        title: "Pagamento recusado",
+        text: "A compra não foi concluída. Seus itens continuam no carrinho.",
+        code: "HTTP 402 · Serviço disponível",
+      };
+    else if (latestResult.status >= 400)
+      paymentResult = {
+        kind: "error",
+        icon: "!",
+        title: "Pagamento não concluído",
+        text: "Seus itens continuam no carrinho.",
+        code: `HTTP ${latestResult.status}`,
+      };
+  } else if (latestResult?.event === "circuit_closed")
+    paymentResult = {
+      kind: "success",
+      icon: "↻",
+      title: "Pagamento disponível novamente",
+      text: "Verificação concluída. Você já pode retomar a compra.",
+      code: "Checkout liberado",
+    };
+  if (blocked && latestResult?.event !== "order_confirmed")
+    paymentResult = {
+      kind: "error",
+      icon: "!",
+      title: "Pagamento indisponível",
+      text: "A compra está suspensa. Seus itens estão salvos.",
+      code: "Checkout protegido",
+    };
+  if (unknown)
+    paymentResult = {
+      kind: "pending",
+      icon: "◷",
+      title: "Pagamento sem confirmação",
+      text: "Consulte o resultado antes de tentar pagar novamente.",
+      code: "Consulta necessária",
+    };
+  $("#order-result").innerHTML = paymentResult
+    ? `<div class="payment-result ${paymentResult.kind}"><div class="payment-result-heading"><span class="payment-result-icon" aria-hidden="true">${paymentResult.icon}</span><h3>${esc(paymentResult.title)}</h3></div><p>${esc(paymentResult.text)}</p><strong>${esc(paymentResult.code)}</strong>${paymentResult.receipt ? `<details><summary>Ver comprovante</summary><code>${esc(paymentResult.receipt)}</code></details>` : ""}</div>`
     : "";
   $("#event-count").textContent = `${s.evidence.length} eventos`;
   $("#metric-evidence").textContent = `${s.evidence.length} eventos`;
@@ -2926,12 +3320,12 @@ function render() {
     ? s.evidence
         .slice()
         .reverse()
-        .map(
-          (e) =>
-            `<article class="event" id="event-${esc(e.id)}"><time>${time(e.timestamp)}</time><div><b>${esc(e.event)}</b><p>${esc(e.details)}</p><code>${esc(e.id)}</code></div>${e.status ? `<span class="http ${e.status >= 400 ? "bad" : ""}">${esc(e.status)}</span>` : ""}</article>`,
-        )
+        .map((e) => {
+          const view = eventView(e);
+          return `<article class="event evidence-event ${view.kind}" id="event-${esc(e.id)}"><time>${time(e.timestamp)}</time><div><b>${esc(view.title)}</b><p>${esc(view.text)}</p><details><summary>Dados do evento</summary><code>${esc(e.event)}</code><p>${esc(e.details)}</p><code>${esc(e.id)}</code></details></div><span class="event-badge ${view.kind}">${e.status ? `HTTP ${esc(e.status)}` : esc(view.badge)}</span></article>`;
+        })
         .join("")
-    : '<p class="empty-cart">As evidências da sua sessão aparecerão aqui.</p>';
+    : '<div class="evidence-empty">Nenhuma execução registrada.</div>';
   document.querySelectorAll("[data-scenario]").forEach((button) => {
     button.classList.toggle("active", button.dataset.scenario === s.scenario);
     button.disabled = busy || unknown;

@@ -163,8 +163,11 @@
           </article>
         </div>
       </section>
-      <details class="evidence-section" id="evidence">
-        <summary>Evidências da execução</summary>
+      <section
+        class="evidence-section"
+        id="evidence"
+        aria-labelledby="evidence-title"
+      >
         <section
           class="experiment-metrics"
           aria-label="Resumo observado"
@@ -189,11 +192,9 @@
 
         <div class="section-heading">
           <div>
-            <h2>Respostas e eventos</h2>
+            <h2 id="evidence-title">Evidências da execução</h2>
           </div>
-          <button id="export" class="text-btn">
-            ↓ Exportar relatório JSON
-          </button>
+          <button id="export" class="text-btn">↓ Baixar evidências</button>
         </div>
         <div class="evidence-layout">
           <div class="timeline-panel">
@@ -215,7 +216,7 @@
             </button>
           </div>
         </div>
-      </details>
+      </section>
       <details class="application-demo" id="application">
         <summary>
           <div>
@@ -240,6 +241,12 @@
             </div>
             <div id="cart-items"></div>
             <div id="payment-notice" class="payment-notice" hidden></div>
+            <div
+              id="order-result"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></div>
             <div class="cart-total">
               <span>Total</span><strong id="cart-total">R$ 0,00</strong>
             </div>
@@ -248,8 +255,6 @@
             ><button id="reconcile" class="secondary" hidden>
               Consultar pagamento pendente
             </button>
-
-            <div id="order-result" role="status"></div>
           </aside>
         </div>
         <section
