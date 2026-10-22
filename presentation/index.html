@@ -1875,6 +1875,121 @@ a:hover {
   }
 }
 
+[hidden] {
+  display: none !important;
+}
+.agent-panel {
+  margin-top: 24px;
+}
+.agent-panel > summary,
+.evidence-section > summary {
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: 600;
+  padding: 6px 0;
+}
+.agent-panel > summary .mode-tag {
+  float: right;
+  font-size: 12px;
+}
+.agent-controls {
+  grid-template-columns: minmax(180px, 1fr) auto auto auto;
+  margin-top: 20px;
+}
+.agent-controls label {
+  font-size: 14px;
+}
+.agent-feedback {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 14px 0;
+}
+.agent-audit {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.agent-audit summary {
+  cursor: pointer;
+  font-size: 14px;
+}
+.evidence-section > summary {
+  margin-bottom: 24px;
+}
+.execution-status {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: #1d392e;
+  color: #f3f6ec;
+  box-shadow: 0 8px 40px #0003;
+  font-size: 14px;
+}
+.execution-status button {
+  color: #e1f5af;
+  background: transparent;
+  border: 1px solid #738b65;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 2px solid #80966f;
+  border-top-color: #e3f6b3;
+  border-radius: 50%;
+  animation: loading-spin 1s linear infinite;
+}
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.execution-error {
+  margin: 20px auto 0;
+  max-width: 1200px;
+  padding: 18px 24px;
+  background: #fff0e9;
+  color: #873d27;
+  border: 1px solid #dfb9a9;
+  border-radius: 12px;
+  font-size: 16px;
+}
+@media (max-width: 720px) {
+  .agent-controls {
+    grid-template-columns: 1fr;
+  }
+  .execution-status {
+    font-size: 12px;
+    padding: 12px;
+  }
+  .agent-panel > summary .mode-tag {
+    float: none;
+    margin-left: 12px;
+  }
+}
+.scenario-buttons button b {
+  font-size: 16px;
+}
+.status-panel .status-row {
+  font-size: 14px;
+}
+.lab-actions button {
+  font-size: 14px;
+  min-height: 52px;
+}
+
     </style>
   </head>
   <body>
@@ -1886,72 +2001,21 @@ a:hover {
       >
       <nav aria-label="Navegação">
         <a href="#lab">Testes</a><a href="#isolation">Isolamento</a
-        ><a href="#evidence">Evidências</a
-        ><a href="#application">Aplicação de apoio</a>
+        ><a href="#evidence">Evidências</a><a href="#application">Loja</a>
       </nav>
       <span class="demo-tag"><span></span> Ambiente de testes</span>
     </header>
+    <div id="execution-status" class="execution-status" hidden role="status">
+      <span class="loading-spinner" aria-hidden="true"></span
+      ><span id="execution-label">Executando…</span
+      ><button id="cancel-execution" type="button">Cancelar</button>
+    </div>
+    <div id="execution-error" class="execution-error" hidden role="alert"></div>
     <main>
       <section class="dashboard-intro">
         <div>
           <h1>Testes de resiliência</h1>
         </div>
-      </section>
-      <section
-        class="experiment-metrics"
-        aria-label="Resumo observado"
-        aria-live="polite"
-      >
-        <article>
-          <span>Avaliação funcional</span
-          ><strong id="metric-tests">Não executada</strong>
-        </article>
-        <article>
-          <span>Último HTTP do cenário</span
-          ><strong id="metric-http">Não verificada</strong>
-        </article>
-        <article>
-          <span>Proteção do pagamento</span
-          ><strong id="metric-isolation">Liberado</strong>
-        </article>
-        <article>
-          <span>Eventos</span><strong id="metric-evidence">0 eventos</strong>
-        </article>
-      </section>
-      <section class="agent-panel" id="agent-panel">
-        <div class="panel-heading">
-          <h2>Agente IA</h2>
-          <span id="agent-status" class="mode-tag"
-            >Verificando configuração</span
-          >
-        </div>
-        <div class="agent-controls">
-          <label
-            >Controle<select id="control-mode">
-              <option value="agent">Agente IA</option>
-              <option value="rules">Regras</option>
-            </select></label
-          >
-          <label
-            >Token do apresentador<input
-              type="password"
-              id="llm-token"
-              autocomplete="off"
-          /></label>
-          <button id="connect-agent" class="secondary">
-            Conectar experimento
-          </button>
-          <button id="run-agent" class="primary" disabled>
-            Executar agente
-          </button>
-        </div>
-        <div class="agent-run-heading">
-          <span id="agent-run-id"></span
-          ><button id="verify-agent" class="text-btn" hidden>
-            Verificar registro
-          </button>
-        </div>
-        <ol id="agent-trace" class="agent-trace"></ol>
       </section>
       <section class="lab" id="lab">
         <div class="lab-head">
@@ -2001,10 +2065,6 @@ a:hover {
             <div class="status-row">
               <span>Última ação</span><b id="action-source">—</b>
             </div>
-            <div class="architecture">
-              <span>Navegador</span><b>→</b><span>API Vercel</span><b>→</b
-              ><span>Pagamento sandbox</span>
-            </div>
           </div>
         </div>
         <div
@@ -2014,6 +2074,44 @@ a:hover {
         ></div>
         <div id="test-results" hidden aria-live="polite"></div>
       </section>
+      <details class="agent-panel" id="agent-panel">
+        <summary>
+          Usar IA <span id="agent-status" class="mode-tag">Verificando…</span>
+        </summary>
+        <div class="agent-controls">
+          <select id="control-mode" hidden aria-label="Controle">
+            <option value="rules">Regras</option>
+            <option value="agent">Agente IA</option>
+          </select>
+          <label
+            >Senha de acesso<input
+              type="password"
+              id="llm-token"
+              autocomplete="off"
+              placeholder="OBS_DEMO_TOKEN"
+          /></label>
+          <button id="connect-agent" class="primary">Ativar IA</button>
+          <button id="run-agent" class="secondary" disabled>
+            Analisar novamente
+          </button>
+          <button id="disconnect-agent" class="text-btn" hidden>
+            Desativar IA
+          </button>
+        </div>
+        <p id="agent-feedback" class="agent-feedback" role="status">
+          Use a senha cadastrada em OBS_DEMO_TOKEN.
+        </p>
+        <details class="agent-audit">
+          <summary>Ver ações da IA</summary>
+          <div class="agent-run-heading">
+            <span id="agent-run-id"></span
+            ><button id="verify-agent" class="text-btn" hidden>
+              Verificar registro
+            </button>
+          </div>
+          <ol id="agent-trace" class="agent-trace"></ol>
+        </details>
+      </details>
       <section class="isolation-section" id="isolation">
         <div class="section-heading">
           <div>
@@ -2041,7 +2139,30 @@ a:hover {
           </article>
         </div>
       </section>
-      <section class="evidence-section" id="evidence">
+      <details class="evidence-section" id="evidence">
+        <summary>Evidências da execução</summary>
+        <section
+          class="experiment-metrics"
+          aria-label="Resumo observado"
+          aria-live="polite"
+        >
+          <article>
+            <span>Avaliação funcional</span
+            ><strong id="metric-tests">Não executada</strong>
+          </article>
+          <article>
+            <span>Último HTTP do cenário</span
+            ><strong id="metric-http">Não verificada</strong>
+          </article>
+          <article>
+            <span>Proteção do pagamento</span
+            ><strong id="metric-isolation">Liberado</strong>
+          </article>
+          <article>
+            <span>Eventos</span><strong id="metric-evidence">0 eventos</strong>
+          </article>
+        </section>
+
         <div class="section-heading">
           <div>
             <h2>Respostas e eventos</h2>
@@ -2070,7 +2191,7 @@ a:hover {
             </button>
           </div>
         </div>
-      </section>
+      </details>
       <details class="application-demo" id="application">
         <summary>
           <div>
@@ -2569,6 +2690,7 @@ const time = (date) =>
     minute: "2-digit",
     second: "2-digit",
   });
+let actionController = null;
 let busy = false,
   diagnosis = null,
   testReport = null,
@@ -2607,7 +2729,7 @@ async function call(body, useExperiment = true) {
     headers,
     body: JSON.stringify(body),
     cache: "no-store",
-    signal: AbortSignal.timeout(12000),
+    signal: requestSignal(12000),
   });
   let data;
   try {
@@ -2626,6 +2748,8 @@ try {
   saved = fresh();
   storageAvailable = false;
 }
+// Access password is intentionally not persisted; activate the agent explicitly after reload.
+saved.controlMode = "rules";
 const store = new Store({
   state: saved,
   call,
@@ -2829,13 +2953,16 @@ function render() {
   $("#control-mode").value = agentMode ? "agent" : "rules";
   $("#control-mode").disabled = busy;
   $("#llm-token").disabled = busy;
-  $("#connect-agent").disabled = busy || !agentMode;
+  $("#connect-agent").disabled = busy || !agentConfigured;
+  $("#connect-agent").textContent =
+    busy && !agentMode ? "Conectando…" : agentMode ? "Reconectar" : "Ativar IA";
+  $("#disconnect-agent").hidden = !agentMode;
+  $("#disconnect-agent").disabled = busy;
+  $("#run-agent").hidden = !agentMode;
+  $("#execution-status").hidden = !busy;
   $("#run-agent").disabled =
     busy || !agentMode || !agentConfigured || !s.agentExperiment;
-  if (agentMode && !s.agentExperiment)
-    document
-      .querySelectorAll("[data-scenario],#recover")
-      .forEach((button) => (button.disabled = true));
+
   $("#action-source").textContent =
     s.actionSource === "agent"
       ? "Agente · política validada"
@@ -2859,19 +2986,53 @@ function render() {
     toast("Não foi possível salvar o carrinho.");
   }
 }
+function requestSignal(ms) {
+  return actionController
+    ? AbortSignal.any([actionController.signal, AbortSignal.timeout(ms)])
+    : AbortSignal.timeout(ms);
+}
+function stage(message) {
+  $("#execution-label").textContent = message;
+}
 async function action(fn) {
   if (busy) return;
   busy = true;
+  actionController = new AbortController();
+  const timeout = setTimeout(
+    () =>
+      actionController?.abort(new DOMException("Tempo limite", "TimeoutError")),
+    60000,
+  );
+  $("#execution-error").hidden = true;
+  stage("Executando…");
   render();
   try {
     await fn();
   } catch (error) {
-    toast(error.message);
+    const message =
+      error.name === "AbortError"
+        ? "Execução cancelada. Você já pode tentar novamente."
+        : error.name === "TimeoutError"
+          ? "A resposta demorou demais. Tente novamente."
+          : error.message;
+    if ($("#test-results").dataset.running === "true") {
+      $("#test-results").dataset.running = "false";
+      $("#test-results").innerHTML =
+        '<div class="test-report"><h3>Execução interrompida</h3></div>';
+    }
+    $("#execution-error").textContent = message;
+    $("#execution-error").hidden = false;
+    toast(message);
   } finally {
+    clearTimeout(timeout);
+    actionController = null;
     busy = false;
     render();
   }
 }
+$("#cancel-execution").addEventListener("click", () =>
+  actionController?.abort(),
+);
 $("#product-list").addEventListener("click", (e) => {
   const b = e.target.closest("[data-add]");
   if (b)
@@ -2920,7 +3081,7 @@ document.querySelectorAll("[data-scenario]").forEach((b) =>
           scenario: b.dataset.scenario,
         });
         store.injectExperiment(data, b.dataset.scenario);
-        toast("Falha configurada. Nenhuma ação do agente aplicada.");
+        await executeAgent();
       } else {
         await store.scenario(b.dataset.scenario);
         diagnosis = rules(store.state.evidence);
@@ -2936,7 +3097,7 @@ $("#recover").addEventListener("click", () =>
         scenario: "normal",
       });
       store.injectExperiment(data, "normal");
-      toast("Serviço restaurado. Execute o agente para verificar a liberação.");
+      await executeAgent();
     } else {
       if (await store.scenario("normal")) toast("Pagamento restaurado.");
       diagnosis = rules(store.state.evidence);
@@ -2944,6 +3105,13 @@ $("#recover").addEventListener("click", () =>
   }),
 );
 async function agentRequest(path, body) {
+  const token = $("#llm-token").value.trim();
+  if (!token)
+    throw new Error("Digite a senha OBS_DEMO_TOKEN para ativar a IA.");
+  if (token.startsWith("sk-"))
+    throw new Error(
+      "Este campo usa OBS_DEMO_TOKEN. A chave da OpenAI fica somente na Vercel.",
+    );
   const response = await fetch(path, {
     method: "POST",
     headers: {
@@ -2954,9 +3122,16 @@ async function agentRequest(path, body) {
         : {}),
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(55000),
+    signal: requestSignal(body.operation === "run" ? 50000 : 8000),
   });
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("A API não respondeu. Tente novamente após o deploy.");
+  }
+  if (response.status === 401 || response.status === 403)
+    throw new Error("Senha incorreta. Use o valor de OBS_DEMO_TOKEN.");
   if (!response.ok && !data.run)
     throw new Error(data.error || "Agente indisponível.");
   return data;
@@ -3015,38 +3190,50 @@ $("#connect-agent").addEventListener("click", () =>
       throw new Error(
         "Consulte o pagamento pendente antes de conectar outro experimento.",
       );
+    stage("Conectando à IA…");
     store.connectExperiment(
       await agentRequest("/api/experiment", { operation: "create" }),
     );
+    store.state.controlMode = "agent";
     store.event("experiment_connected", null, store.state.agentExperiment.id);
-    toast("Experimento conectado.");
+    $("#agent-feedback").textContent = "IA ativada. Escolha um cenário acima.";
+    $("#agent-status").textContent = "Ativada";
+    toast("IA ativada. Escolha um cenário.");
   }),
 );
-$("#run-agent").addEventListener("click", () =>
-  action(async () => {
-    $("#agent-status").textContent = "Executando";
-    try {
-      const data = await agentRequest("/api/agent", {
-        operation: "run",
-        pendingPayment: Boolean(store.state.attempt?.unknown),
-      });
-      store.applyAgentRun(data);
-      agentVerified = null;
-      if (data.run.status === "completed") {
-        diagnosis = {
-          ...data.run.diagnosis,
-          mode: "llm",
-          model: data.run.model,
-        };
-        // Agent references point to its tool observations, not the unrelated client logs.
-        $("#agent-status").textContent = "Concluído";
-      } else $("#agent-status").textContent = "Falhou · sem ação";
-    } catch (error) {
-      $("#agent-status").textContent = "Erro na execução";
-      throw error;
-    }
-  }),
-);
+async function executeAgent() {
+  stage("IA verificando os serviços…");
+  $("#agent-status").textContent = "Analisando…";
+  $("#agent-feedback").textContent = "Análise em andamento…";
+  try {
+    const data = await agentRequest("/api/agent", {
+      operation: "run",
+      pendingPayment: Boolean(store.state.attempt?.unknown),
+    });
+    store.applyAgentRun(data);
+    agentVerified = null;
+    if (data.run.status !== "completed")
+      throw new Error(
+        "A IA não concluiu a análise. Nenhuma ação foi aplicada. Verifique a chave e o saldo da API.",
+      );
+    diagnosis = { ...data.run.diagnosis, mode: "llm", model: data.run.model };
+    $("#agent-status").textContent = "Concluído";
+    $("#agent-feedback").textContent = data.run.diagnosis.summary;
+  } catch (error) {
+    $("#agent-status").textContent = "Não concluído";
+    $("#agent-feedback").textContent = "Análise interrompida. Tente novamente.";
+    throw error;
+  }
+}
+$("#run-agent").addEventListener("click", () => action(executeAgent));
+$("#disconnect-agent").addEventListener("click", () => {
+  if (busy) return;
+  store.state.controlMode = "rules";
+  store.save();
+  $("#agent-feedback").textContent =
+    "IA desativada. Testes por regras disponíveis.";
+  $("#agent-status").textContent = "Disponível";
+});
 $("#verify-agent").addEventListener("click", () =>
   action(async () => {
     const entry = store.state.agentRuns.at(-1);
@@ -3058,8 +3245,11 @@ $("#verify-agent").addEventListener("click", () =>
     agentVerified = result.valid;
   }),
 );
-fetch("/api/agent", { cache: "no-store" })
-  .then((response) => response.json())
+fetch("/api/agent", { cache: "no-store", signal: AbortSignal.timeout(6000) })
+  .then((response) => {
+    if (!response.ok) throw new Error("Configuração indisponível");
+    return response.json();
+  })
   .then((data) => {
     agentConfigured = Boolean(data.configured);
     if (!agentConfigured && store.state.controlMode === "agent") {
@@ -3068,11 +3258,16 @@ fetch("/api/agent", { cache: "no-store" })
     }
     $("#agent-status").textContent = agentConfigured
       ? data.model
-      : "Não configurado";
+      : "Não configurada";
+    $("#agent-feedback").textContent = agentConfigured
+      ? "Digite a senha OBS_DEMO_TOKEN e clique em Ativar IA."
+      : "IA não configurada na Vercel. Os testes estão disponíveis acima.";
     render();
   })
   .catch(() => {
     $("#agent-status").textContent = "Indisponível";
+    $("#agent-feedback").textContent =
+      "IA indisponível. Os testes continuam disponíveis acima.";
     store.state.controlMode = "rules";
     store.save();
   });
@@ -3093,7 +3288,7 @@ $("#analyze").addEventListener("click", () =>
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ evidence }),
-        signal: AbortSignal.timeout(25000),
+        signal: requestSignal(25000),
       });
       const data = await response.json();
       if (!response.ok)
@@ -3160,6 +3355,8 @@ async function evaluate(api = (body) => call(body, false)) {
     ],
   ];
   async function test(name, fn) {
+    if (actionController?.signal.aborted) throw actionController.signal.reason;
+    stage(`Teste ${results.length + 1}/8 · ${name}`);
     const start = performance.now();
     const offset = evidence.length;
     const [title, problem, outcome] = explanations[results.length];
@@ -3325,7 +3522,9 @@ $("#run-tests").addEventListener("click", () =>
     $("#test-results").hidden = false;
     $("#test-results").innerHTML =
       '<div class="test-report"><h3>Executando avaliação pela API…</h3></div>';
+    $("#test-results").dataset.running = "true";
     testReport = await evaluate();
+    $("#test-results").dataset.running = "false";
     const passed = testReport.results.filter((r) => r.passed).length;
     $("#test-results").innerHTML =
       `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3><div class="test-cards">${testReport.results.map((r, i) => `<article class="test-card ${r.passed ? "" : "fail"}"><header><span>TESTE ${String(i + 1).padStart(2, "0")}</span><b>${r.passed ? "✓ Aprovado" : "✕ Falhou"}</b></header><h4>${esc(r.title)}</h4><dl><dt>O que aconteceu</dt><dd>${esc(r.problem)}</dd><dt>${r.passed ? "Resultado confirmado" : "Resultado"}</dt><dd>${esc(r.outcome)}</dd></dl>${r.error ? `<p class="test-error">${esc(r.error)}</p>` : ""}<footer>${r.durationMs ?? "—"} ms${r.observations?.length ? ` · ${r.observations.length} eventos registrados` : ""}</footer>${r.observations?.length ? `<details><summary>Ver evidências</summary>${r.observations.map((e) => `<div class="test-observation"><code>${esc(e.event)}${e.status ? ` · HTTP ${esc(e.status)}` : ""}</code><p>${esc(e.details || "")}</p></div>`).join("")}</details>` : ""}</article>`).join("")}</div></div>`;

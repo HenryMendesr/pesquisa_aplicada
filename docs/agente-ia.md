@@ -2,11 +2,17 @@
 
 ## O que mudou
 
-A interface separa **Agente IA** e **Regras**. No modo agente, o botão de cenário
-só altera a falha do experimento. Ele não abre nem fecha o circuito. O comando
-“Executar agente” chama a LLM, executa as ferramentas que ela selecionar e submete
-sua proposta a uma política. Não existe provedor simulado ou fallback por regras
-nessa rota de produção. Sem configuração, o agente fica indisponível.
+A página abre com os testes por regras disponíveis. Em **Usar IA**, informe a
+senha `OBS_DEMO_TOKEN` e clique em **Ativar IA**. Ao escolher um cenário ou
+restaurar o pagamento, a interface injeta a condição e chama o agente na sequência.
+A injeção não abre nem fecha o circuito: a ação depende das ferramentas escolhidas
+pela LLM e da validação da política. **Analisar novamente** repete a análise.
+Não existe provedor simulado ou fallback por regras nessa rota de produção.
+
+A consulta inicial tem limite de seis segundos; conexão e injeção, oito segundos;
+a execução do agente, cinquenta segundos. A barra de execução mostra a etapa e
+permite cancelar. Erros aparecem na página e os controles são liberados. A senha
+não é persistida; recarregar a página exige ativar a IA novamente.
 
 A proteção defensiva do checkout e o benchmark funcional continuam existindo.
 Quando essa proteção por regras atua, a origem aparece como **Regras**, nunca
@@ -84,24 +90,21 @@ real precisa concluir antes de apresentar uma demonstração como validada.
 
 ## Roteiro para o professor
 
-1. Selecionar **Agente IA**, informar o token do apresentador e conectar o
-   experimento. Adicionar um item em Compra e carrinho.
-2. Injetar **Falha no pagamento**. Mostrar que isso, por si só, não isola o
-   checkout nem cria uma ação no registro do agente.
-3. Executar o agente. Inspecionar as chamadas de ferramenta e seus resultados.
-4. Localizar a proposta de isolamento, os IDs citados, a decisão da política
-   e a ação aplicada. Mostrar **Última ação: Agente · política validada**.
-5. Conferir que o carrinho continua acessível. Uma tentativa direta com o estado
-   assinado atual também recebe HTTP 423 no backend, não apenas botão desabilitado.
-6. Solicitar aviso e restaurar o pagamento. A restauração não libera o checkout
-   automaticamente no modo agente.
-7. Executar novamente. Conferir duas verificações funcionais, proposta de
-   liberação, validação e aviso único. Retomar a compra por ação do usuário.
-8. Repetir com recusa comercial e normalidade: a IA não deveria propor isolamento.
-   Se propuser, mostrar a rejeição da política, sem substituir pelo esperado.
-9. Exportar o JSON e usar **Verificar registro**. Alterar uma cópia do registro
-   deve invalidar sua assinatura. IDs de solicitação do provedor também ficam
-   registrados quando fornecidos.
+1. Abrir **Usar IA**, informar a senha e clicar em **Ativar IA**. Adicionar
+   um item em Compra e carrinho.
+2. Escolher **Falha no pagamento**. A análise começa após a injeção.
+3. Abrir **Ver ações da IA** e conferir a ordem: injeção, observações das
+   ferramentas, proposta, validação da política e ação aplicada.
+4. Conferir **Última ação: Agente · política validada**. O carrinho permanece
+   acessível. O backend também bloqueia o pagamento com HTTP 423 quando recebe
+   o estado assinado atual do checkout isolado.
+5. Solicitar aviso e clicar em **Restaurar e verificar pagamento**. A interface
+   remove a falha e chama o agente. A liberação depende das duas verificações
+   funcionais, da proposta e da política. Conferir aviso único e retomar a compra.
+6. Repetir com recusa comercial e normalidade. Se a IA propuser isolamento sem
+   evidências suficientes, mostrar a rejeição da política.
+7. Exportar o JSON em **Evidências da execução** e usar **Verificar registro**
+   dentro de **Ver ações da IA**. Alterar uma cópia invalida a assinatura.
 
 A assinatura comprova integridade do registro emitido pelo servidor configurado;
 não é uma auditoria independente do provedor nem uma medida de acurácia de IA.

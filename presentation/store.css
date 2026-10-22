@@ -1859,3 +1859,118 @@ a:hover {
     padding: 20px;
   }
 }
+
+[hidden] {
+  display: none !important;
+}
+.agent-panel {
+  margin-top: 24px;
+}
+.agent-panel > summary,
+.evidence-section > summary {
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: 600;
+  padding: 6px 0;
+}
+.agent-panel > summary .mode-tag {
+  float: right;
+  font-size: 12px;
+}
+.agent-controls {
+  grid-template-columns: minmax(180px, 1fr) auto auto auto;
+  margin-top: 20px;
+}
+.agent-controls label {
+  font-size: 14px;
+}
+.agent-feedback {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 14px 0;
+}
+.agent-audit {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.agent-audit summary {
+  cursor: pointer;
+  font-size: 14px;
+}
+.evidence-section > summary {
+  margin-bottom: 24px;
+}
+.execution-status {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: #1d392e;
+  color: #f3f6ec;
+  box-shadow: 0 8px 40px #0003;
+  font-size: 14px;
+}
+.execution-status button {
+  color: #e1f5af;
+  background: transparent;
+  border: 1px solid #738b65;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 2px solid #80966f;
+  border-top-color: #e3f6b3;
+  border-radius: 50%;
+  animation: loading-spin 1s linear infinite;
+}
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.execution-error {
+  margin: 20px auto 0;
+  max-width: 1200px;
+  padding: 18px 24px;
+  background: #fff0e9;
+  color: #873d27;
+  border: 1px solid #dfb9a9;
+  border-radius: 12px;
+  font-size: 16px;
+}
+@media (max-width: 720px) {
+  .agent-controls {
+    grid-template-columns: 1fr;
+  }
+  .execution-status {
+    font-size: 12px;
+    padding: 12px;
+  }
+  .agent-panel > summary .mode-tag {
+    float: none;
+    margin-left: 12px;
+  }
+}
+.scenario-buttons button b {
+  font-size: 16px;
+}
+.status-panel .status-row {
+  font-size: 14px;
+}
+.lab-actions button {
+  font-size: 14px;
+  min-height: 52px;
+}

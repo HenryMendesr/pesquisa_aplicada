@@ -25,72 +25,21 @@
       >
       <nav aria-label="Navegação">
         <a href="#lab">Testes</a><a href="#isolation">Isolamento</a
-        ><a href="#evidence">Evidências</a
-        ><a href="#application">Aplicação de apoio</a>
+        ><a href="#evidence">Evidências</a><a href="#application">Loja</a>
       </nav>
       <span class="demo-tag"><span></span> Ambiente de testes</span>
     </header>
+    <div id="execution-status" class="execution-status" hidden role="status">
+      <span class="loading-spinner" aria-hidden="true"></span
+      ><span id="execution-label">Executando…</span
+      ><button id="cancel-execution" type="button">Cancelar</button>
+    </div>
+    <div id="execution-error" class="execution-error" hidden role="alert"></div>
     <main>
       <section class="dashboard-intro">
         <div>
           <h1>Testes de resiliência</h1>
         </div>
-      </section>
-      <section
-        class="experiment-metrics"
-        aria-label="Resumo observado"
-        aria-live="polite"
-      >
-        <article>
-          <span>Avaliação funcional</span
-          ><strong id="metric-tests">Não executada</strong>
-        </article>
-        <article>
-          <span>Último HTTP do cenário</span
-          ><strong id="metric-http">Não verificada</strong>
-        </article>
-        <article>
-          <span>Proteção do pagamento</span
-          ><strong id="metric-isolation">Liberado</strong>
-        </article>
-        <article>
-          <span>Eventos</span><strong id="metric-evidence">0 eventos</strong>
-        </article>
-      </section>
-      <section class="agent-panel" id="agent-panel">
-        <div class="panel-heading">
-          <h2>Agente IA</h2>
-          <span id="agent-status" class="mode-tag"
-            >Verificando configuração</span
-          >
-        </div>
-        <div class="agent-controls">
-          <label
-            >Controle<select id="control-mode">
-              <option value="agent">Agente IA</option>
-              <option value="rules">Regras</option>
-            </select></label
-          >
-          <label
-            >Token do apresentador<input
-              type="password"
-              id="llm-token"
-              autocomplete="off"
-          /></label>
-          <button id="connect-agent" class="secondary">
-            Conectar experimento
-          </button>
-          <button id="run-agent" class="primary" disabled>
-            Executar agente
-          </button>
-        </div>
-        <div class="agent-run-heading">
-          <span id="agent-run-id"></span
-          ><button id="verify-agent" class="text-btn" hidden>
-            Verificar registro
-          </button>
-        </div>
-        <ol id="agent-trace" class="agent-trace"></ol>
       </section>
       <section class="lab" id="lab">
         <div class="lab-head">
@@ -140,10 +89,6 @@
             <div class="status-row">
               <span>Última ação</span><b id="action-source">—</b>
             </div>
-            <div class="architecture">
-              <span>Navegador</span><b>→</b><span>API Vercel</span><b>→</b
-              ><span>Pagamento sandbox</span>
-            </div>
           </div>
         </div>
         <div
@@ -153,6 +98,44 @@
         ></div>
         <div id="test-results" hidden aria-live="polite"></div>
       </section>
+      <details class="agent-panel" id="agent-panel">
+        <summary>
+          Usar IA <span id="agent-status" class="mode-tag">Verificando…</span>
+        </summary>
+        <div class="agent-controls">
+          <select id="control-mode" hidden aria-label="Controle">
+            <option value="rules">Regras</option>
+            <option value="agent">Agente IA</option>
+          </select>
+          <label
+            >Senha de acesso<input
+              type="password"
+              id="llm-token"
+              autocomplete="off"
+              placeholder="OBS_DEMO_TOKEN"
+          /></label>
+          <button id="connect-agent" class="primary">Ativar IA</button>
+          <button id="run-agent" class="secondary" disabled>
+            Analisar novamente
+          </button>
+          <button id="disconnect-agent" class="text-btn" hidden>
+            Desativar IA
+          </button>
+        </div>
+        <p id="agent-feedback" class="agent-feedback" role="status">
+          Use a senha cadastrada em OBS_DEMO_TOKEN.
+        </p>
+        <details class="agent-audit">
+          <summary>Ver ações da IA</summary>
+          <div class="agent-run-heading">
+            <span id="agent-run-id"></span
+            ><button id="verify-agent" class="text-btn" hidden>
+              Verificar registro
+            </button>
+          </div>
+          <ol id="agent-trace" class="agent-trace"></ol>
+        </details>
+      </details>
       <section class="isolation-section" id="isolation">
         <div class="section-heading">
           <div>
@@ -180,7 +163,30 @@
           </article>
         </div>
       </section>
-      <section class="evidence-section" id="evidence">
+      <details class="evidence-section" id="evidence">
+        <summary>Evidências da execução</summary>
+        <section
+          class="experiment-metrics"
+          aria-label="Resumo observado"
+          aria-live="polite"
+        >
+          <article>
+            <span>Avaliação funcional</span
+            ><strong id="metric-tests">Não executada</strong>
+          </article>
+          <article>
+            <span>Último HTTP do cenário</span
+            ><strong id="metric-http">Não verificada</strong>
+          </article>
+          <article>
+            <span>Proteção do pagamento</span
+            ><strong id="metric-isolation">Liberado</strong>
+          </article>
+          <article>
+            <span>Eventos</span><strong id="metric-evidence">0 eventos</strong>
+          </article>
+        </section>
+
         <div class="section-heading">
           <div>
             <h2>Respostas e eventos</h2>
@@ -209,7 +215,7 @@
             </button>
           </div>
         </div>
-      </section>
+      </details>
       <details class="application-demo" id="application">
         <summary>
           <div>

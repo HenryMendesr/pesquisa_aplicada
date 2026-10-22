@@ -18,6 +18,7 @@ const time = (date) =>
     minute: "2-digit",
     second: "2-digit",
   });
+let actionController = null;
 let busy = false,
   diagnosis = null,
   testReport = null,
@@ -56,7 +57,7 @@ async function call(body, useExperiment = true) {
     headers,
     body: JSON.stringify(body),
     cache: "no-store",
-    signal: AbortSignal.timeout(12000),
+    signal: requestSignal(12000),
   });
   let data;
   try {
@@ -75,6 +76,8 @@ try {
   saved = fresh();
   storageAvailable = false;
 }
+// Access password is intentionally not persisted; activate the agent explicitly after reload.
+saved.controlMode = "rules";
 const store = new Store({
   state: saved,
   call,
@@ -278,13 +281,16 @@ function render() {
   $("#control-mode").value = agentMode ? "agent" : "rules";
   $("#control-mode").disabled = busy;
   $("#llm-token").disabled = busy;
-  $("#connect-agent").disabled = busy || !agentMode;
+  $("#connect-agent").disabled = busy || !agentConfigured;
+  $("#connect-agent").textContent =
+    busy && !agentMode ? "Conectando…" : agentMode ? "Reconectar" : "Ativar IA";
+  $("#disconnect-agent").hidden = !agentMode;
+  $("#disconnect-agent").disabled = busy;
+  $("#run-agent").hidden = !agentMode;
+  $("#execution-status").hidden = !busy;
   $("#run-agent").disabled =
     busy || !agentMode || !agentConfigured || !s.agentExperiment;
-  if (agentMode && !s.agentExperiment)
-    document
-      .querySelectorAll("[data-scenario],#recover")
-      .forEach((button) => (button.disabled = true));
+
   $("#action-source").textContent =
     s.actionSource === "agent"
       ? "Agente · política validada"
@@ -308,19 +314,53 @@ function render() {
     toast("Não foi possível salvar o carrinho.");
   }
 }
+function requestSignal(ms) {
+  return actionController
+    ? AbortSignal.any([actionController.signal, AbortSignal.timeout(ms)])
+    : AbortSignal.timeout(ms);
+}
+function stage(message) {
+  $("#execution-label").textContent = message;
+}
 async function action(fn) {
   if (busy) return;
   busy = true;
+  actionController = new AbortController();
+  const timeout = setTimeout(
+    () =>
+      actionController?.abort(new DOMException("Tempo limite", "TimeoutError")),
+    60000,
+  );
+  $("#execution-error").hidden = true;
+  stage("Executando…");
   render();
   try {
     await fn();
   } catch (error) {
-    toast(error.message);
+    const message =
+      error.name === "AbortError"
+        ? "Execução cancelada. Você já pode tentar novamente."
+        : error.name === "TimeoutError"
+          ? "A resposta demorou demais. Tente novamente."
+          : error.message;
+    if ($("#test-results").dataset.running === "true") {
+      $("#test-results").dataset.running = "false";
+      $("#test-results").innerHTML =
+        '<div class="test-report"><h3>Execução interrompida</h3></div>';
+    }
+    $("#execution-error").textContent = message;
+    $("#execution-error").hidden = false;
+    toast(message);
   } finally {
+    clearTimeout(timeout);
+    actionController = null;
     busy = false;
     render();
   }
 }
+$("#cancel-execution").addEventListener("click", () =>
+  actionController?.abort(),
+);
 $("#product-list").addEventListener("click", (e) => {
   const b = e.target.closest("[data-add]");
   if (b)
@@ -369,7 +409,7 @@ document.querySelectorAll("[data-scenario]").forEach((b) =>
           scenario: b.dataset.scenario,
         });
         store.injectExperiment(data, b.dataset.scenario);
-        toast("Falha configurada. Nenhuma ação do agente aplicada.");
+        await executeAgent();
       } else {
         await store.scenario(b.dataset.scenario);
         diagnosis = rules(store.state.evidence);
@@ -385,7 +425,7 @@ $("#recover").addEventListener("click", () =>
         scenario: "normal",
       });
       store.injectExperiment(data, "normal");
-      toast("Serviço restaurado. Execute o agente para verificar a liberação.");
+      await executeAgent();
     } else {
       if (await store.scenario("normal")) toast("Pagamento restaurado.");
       diagnosis = rules(store.state.evidence);
@@ -393,6 +433,13 @@ $("#recover").addEventListener("click", () =>
   }),
 );
 async function agentRequest(path, body) {
+  const token = $("#llm-token").value.trim();
+  if (!token)
+    throw new Error("Digite a senha OBS_DEMO_TOKEN para ativar a IA.");
+  if (token.startsWith("sk-"))
+    throw new Error(
+      "Este campo usa OBS_DEMO_TOKEN. A chave da OpenAI fica somente na Vercel.",
+    );
   const response = await fetch(path, {
     method: "POST",
     headers: {
@@ -403,9 +450,16 @@ async function agentRequest(path, body) {
         : {}),
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(55000),
+    signal: requestSignal(body.operation === "run" ? 50000 : 8000),
   });
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error("A API não respondeu. Tente novamente após o deploy.");
+  }
+  if (response.status === 401 || response.status === 403)
+    throw new Error("Senha incorreta. Use o valor de OBS_DEMO_TOKEN.");
   if (!response.ok && !data.run)
     throw new Error(data.error || "Agente indisponível.");
   return data;
@@ -464,38 +518,50 @@ $("#connect-agent").addEventListener("click", () =>
       throw new Error(
         "Consulte o pagamento pendente antes de conectar outro experimento.",
       );
+    stage("Conectando à IA…");
     store.connectExperiment(
       await agentRequest("/api/experiment", { operation: "create" }),
     );
+    store.state.controlMode = "agent";
     store.event("experiment_connected", null, store.state.agentExperiment.id);
-    toast("Experimento conectado.");
+    $("#agent-feedback").textContent = "IA ativada. Escolha um cenário acima.";
+    $("#agent-status").textContent = "Ativada";
+    toast("IA ativada. Escolha um cenário.");
   }),
 );
-$("#run-agent").addEventListener("click", () =>
-  action(async () => {
-    $("#agent-status").textContent = "Executando";
-    try {
-      const data = await agentRequest("/api/agent", {
-        operation: "run",
-        pendingPayment: Boolean(store.state.attempt?.unknown),
-      });
-      store.applyAgentRun(data);
-      agentVerified = null;
-      if (data.run.status === "completed") {
-        diagnosis = {
-          ...data.run.diagnosis,
-          mode: "llm",
-          model: data.run.model,
-        };
-        // Agent references point to its tool observations, not the unrelated client logs.
-        $("#agent-status").textContent = "Concluído";
-      } else $("#agent-status").textContent = "Falhou · sem ação";
-    } catch (error) {
-      $("#agent-status").textContent = "Erro na execução";
-      throw error;
-    }
-  }),
-);
+async function executeAgent() {
+  stage("IA verificando os serviços…");
+  $("#agent-status").textContent = "Analisando…";
+  $("#agent-feedback").textContent = "Análise em andamento…";
+  try {
+    const data = await agentRequest("/api/agent", {
+      operation: "run",
+      pendingPayment: Boolean(store.state.attempt?.unknown),
+    });
+    store.applyAgentRun(data);
+    agentVerified = null;
+    if (data.run.status !== "completed")
+      throw new Error(
+        "A IA não concluiu a análise. Nenhuma ação foi aplicada. Verifique a chave e o saldo da API.",
+      );
+    diagnosis = { ...data.run.diagnosis, mode: "llm", model: data.run.model };
+    $("#agent-status").textContent = "Concluído";
+    $("#agent-feedback").textContent = data.run.diagnosis.summary;
+  } catch (error) {
+    $("#agent-status").textContent = "Não concluído";
+    $("#agent-feedback").textContent = "Análise interrompida. Tente novamente.";
+    throw error;
+  }
+}
+$("#run-agent").addEventListener("click", () => action(executeAgent));
+$("#disconnect-agent").addEventListener("click", () => {
+  if (busy) return;
+  store.state.controlMode = "rules";
+  store.save();
+  $("#agent-feedback").textContent =
+    "IA desativada. Testes por regras disponíveis.";
+  $("#agent-status").textContent = "Disponível";
+});
 $("#verify-agent").addEventListener("click", () =>
   action(async () => {
     const entry = store.state.agentRuns.at(-1);
@@ -507,8 +573,11 @@ $("#verify-agent").addEventListener("click", () =>
     agentVerified = result.valid;
   }),
 );
-fetch("/api/agent", { cache: "no-store" })
-  .then((response) => response.json())
+fetch("/api/agent", { cache: "no-store", signal: AbortSignal.timeout(6000) })
+  .then((response) => {
+    if (!response.ok) throw new Error("Configuração indisponível");
+    return response.json();
+  })
   .then((data) => {
     agentConfigured = Boolean(data.configured);
     if (!agentConfigured && store.state.controlMode === "agent") {
@@ -517,11 +586,16 @@ fetch("/api/agent", { cache: "no-store" })
     }
     $("#agent-status").textContent = agentConfigured
       ? data.model
-      : "Não configurado";
+      : "Não configurada";
+    $("#agent-feedback").textContent = agentConfigured
+      ? "Digite a senha OBS_DEMO_TOKEN e clique em Ativar IA."
+      : "IA não configurada na Vercel. Os testes estão disponíveis acima.";
     render();
   })
   .catch(() => {
     $("#agent-status").textContent = "Indisponível";
+    $("#agent-feedback").textContent =
+      "IA indisponível. Os testes continuam disponíveis acima.";
     store.state.controlMode = "rules";
     store.save();
   });
@@ -542,7 +616,7 @@ $("#analyze").addEventListener("click", () =>
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ evidence }),
-        signal: AbortSignal.timeout(25000),
+        signal: requestSignal(25000),
       });
       const data = await response.json();
       if (!response.ok)
@@ -609,6 +683,8 @@ export async function evaluate(api = (body) => call(body, false)) {
     ],
   ];
   async function test(name, fn) {
+    if (actionController?.signal.aborted) throw actionController.signal.reason;
+    stage(`Teste ${results.length + 1}/8 · ${name}`);
     const start = performance.now();
     const offset = evidence.length;
     const [title, problem, outcome] = explanations[results.length];
@@ -774,7 +850,9 @@ $("#run-tests").addEventListener("click", () =>
     $("#test-results").hidden = false;
     $("#test-results").innerHTML =
       '<div class="test-report"><h3>Executando avaliação pela API…</h3></div>';
+    $("#test-results").dataset.running = "true";
     testReport = await evaluate();
+    $("#test-results").dataset.running = "false";
     const passed = testReport.results.filter((r) => r.passed).length;
     $("#test-results").innerHTML =
       `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3><div class="test-cards">${testReport.results.map((r, i) => `<article class="test-card ${r.passed ? "" : "fail"}"><header><span>TESTE ${String(i + 1).padStart(2, "0")}</span><b>${r.passed ? "✓ Aprovado" : "✕ Falhou"}</b></header><h4>${esc(r.title)}</h4><dl><dt>O que aconteceu</dt><dd>${esc(r.problem)}</dd><dt>${r.passed ? "Resultado confirmado" : "Resultado"}</dt><dd>${esc(r.outcome)}</dd></dl>${r.error ? `<p class="test-error">${esc(r.error)}</p>` : ""}<footer>${r.durationMs ?? "—"} ms${r.observations?.length ? ` · ${r.observations.length} eventos registrados` : ""}</footer>${r.observations?.length ? `<details><summary>Ver evidências</summary>${r.observations.map((e) => `<div class="test-observation"><code>${esc(e.event)}${e.status ? ` · HTTP ${esc(e.status)}` : ""}</code><p>${esc(e.details || "")}</p></div>`).join("")}</details>` : ""}</article>`).join("")}</div></div>`;
