@@ -32,11 +32,21 @@ uma próxima rodada de melhorias. Os enunciados completos de PBL4–PBL7 não es
 no repositório; não se presume uma associação específica além das etapas de
 construção, demonstração e avaliação descritas no enunciado fornecido.
 
+## Organização da interface
+
+A página abre no laboratório, com resumo da avaliação, último HTTP do cenário,
+estado da proteção e quantidade de evidências. Os oito testes e o mapa de
+contenção são o foco principal. A loja fica recolhida em **Aplicação de apoio**,
+usada para comprovar visualmente que o carrinho permanece disponível enquanto
+a finalização está suspensa. O mapa identifica catálogo/carrinho como componentes
+locais e pagamento como função HTTP sandbox; não representa containers reais.
+
 ## Roteiro de apresentação (8–12 minutos)
 
 1. **Problema e arquitetura.** Explicar a falha de uma dependência de pagamento
    enquanto catálogo e carrinho continuam utilizáveis. Mostrar o aviso de sandbox.
-2. **Referência funcional.** Selecionar operação normal, adicionar um produto e
+2. **Avaliação e referência funcional.** Executar os oito testes e conferir os resultados.
+   Abrir “Aplicação de apoio”, selecionar operação normal, adicionar um produto e
    finalizar. Mostrar HTTP 200, total e comprovante; não houve cobrança real.
 3. **Incidente.** Adicionar outro produto e selecionar “Falha no pagamento”.
    Abrir a linha do tempo e localizar HTTP 503 e abertura do circuito.

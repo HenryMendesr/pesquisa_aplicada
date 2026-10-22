@@ -1190,3 +1190,320 @@ a:hover {
     font-size: 9px;
   }
 }
+
+/* The experiment leads; the commerce UI is supporting evidence. */
+.dashboard-intro {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 65px;
+  padding: 45px 0 30px;
+  align-items: center;
+}
+.dashboard-intro h1 {
+  font-size: clamp(32px, 3.5vw, 48px);
+  font-weight: 500;
+  letter-spacing: -1.8px;
+  line-height: 1.15;
+  margin: 0 0 16px;
+}
+.dashboard-intro h1 em {
+  font-style: normal;
+  color: #6d8651;
+}
+.dashboard-intro .eyebrow {
+  font-size: 9px;
+  margin-bottom: 13px;
+}
+.dashboard-intro > div > p:last-child {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 600px;
+  margin: 0;
+}
+.experiment-scope {
+  border-left: 2px solid #c6d5b3;
+  padding: 5px 0 5px 22px;
+}
+.experiment-scope > span {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+.experiment-scope strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+.experiment-scope p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+.experiment-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 0 0 28px;
+}
+.experiment-metrics article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 17px 18px;
+  background: white;
+}
+.experiment-metrics span {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+}
+.experiment-metrics strong {
+  display: block;
+  font-size: 21px;
+  font-weight: 500;
+  margin: 5px 0;
+  letter-spacing: -0.6px;
+}
+.experiment-metrics small {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+}
+.lab-actions .test-btn {
+  order: -1;
+  background: var(--lime);
+  color: #243f2e;
+  border-color: var(--lime);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 13px 20px;
+}
+.test-empty {
+  padding: 18px 20px;
+  border: 1px dashed #50654e;
+  border-radius: 8px;
+  margin-top: 24px;
+  color: #dce9d1;
+}
+.test-empty strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.test-empty p {
+  font-size: 10px;
+  color: #a3b5a8;
+  margin-bottom: 0;
+  max-width: 800px;
+}
+.test-empty:has(.test-report) {
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.isolation-section {
+  padding: 35px 0 0;
+}
+.isolation-map {
+  display: grid;
+  grid-template-columns: 1fr 25px 1fr 25px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.component {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  padding: 22px;
+  min-height: 175px;
+}
+.component > span {
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.component h3 {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 12px 0 8px;
+}
+.component strong {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.component p {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+.component.available {
+  border-top: 3px solid #89a96d;
+}
+.component.available strong {
+  color: #577442;
+}
+.component.isolated {
+  border: 1px solid #e1b9a9;
+  border-top: 3px solid #b96749;
+  background: #fff7f1;
+}
+.component.isolated strong {
+  color: #a05038;
+}
+.map-connector {
+  text-align: center;
+  color: #8c9b7e;
+}
+.isolation-conclusion {
+  background: #ecf1e5;
+  border-radius: 7px;
+  padding: 14px 18px;
+  font-size: 12px;
+  margin-top: 16px;
+}
+.isolation-section > .scope-note {
+  margin-top: 10px;
+  font-size: 9px;
+}
+.evidence-section {
+  padding: 35px 0;
+}
+.application-demo {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f0f3eb;
+  margin-bottom: 35px;
+  padding: 0 25px;
+}
+.application-demo > summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 0;
+  list-style: none;
+}
+.application-demo > summary::-webkit-details-marker {
+  display: none;
+}
+.application-demo > summary .eyebrow {
+  font-size: 8px;
+  margin: 0 0 7px;
+}
+.application-demo > summary h2 {
+  font-size: 21px;
+}
+.application-demo > summary p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+.expand-label {
+  font-size: 10px;
+  color: var(--green);
+  white-space: nowrap;
+}
+.application-demo[open] .expand-label {
+  font-size: 0;
+}
+.application-demo[open] .expand-label:after {
+  content: "Recolher demonstração −";
+  font-size: 10px;
+}
+.application-demo .commerce-layout {
+  padding: 18px 0 25px;
+  gap: 28px;
+}
+.application-demo .product-art {
+  height: 125px;
+}
+.application-demo .product-art svg {
+  height: 85px;
+  width: 85px;
+}
+.application-demo .notifications {
+  padding-bottom: 12px;
+}
+.delivery h2 {
+  font-size: 22px;
+}
+@media (max-width: 900px) {
+  .dashboard-intro {
+    gap: 25px;
+  }
+  .experiment-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .component {
+    padding: 16px;
+    min-height: 185px;
+  }
+  .header nav {
+    gap: 15px;
+    font-size: 11px;
+  }
+  .demo-tag {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .dashboard-intro {
+    grid-template-columns: 1fr;
+    padding: 28px 0 24px;
+    gap: 20px;
+  }
+  .dashboard-intro h1 {
+    font-size: 35px;
+  }
+  .experiment-scope {
+    padding-left: 15px;
+  }
+  .experiment-metrics {
+    gap: 9px;
+  }
+  .experiment-metrics article {
+    padding: 12px;
+  }
+  .experiment-metrics strong {
+    font-size: 18px;
+  }
+  .header {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 85px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    gap: 10px;
+  }
+  .header nav {
+    gap: 12px;
+    font-size: 9px;
+  }
+  .isolation-map {
+    grid-template-columns: 1fr;
+  }
+  .component {
+    min-height: 0;
+  }
+  .map-connector {
+    transform: rotate(90deg);
+  }
+  .application-demo {
+    padding: 0 16px;
+  }
+  .application-demo > summary {
+    align-items: start;
+  }
+  .expand-label {
+    max-width: 70px;
+    white-space: normal;
+  }
+  .isolation-section .section-heading {
+    flex-wrap: wrap;
+  }
+  .lab-actions .test-btn {
+    font-size: 11px;
+    padding: 12px 16px;
+  }
+}

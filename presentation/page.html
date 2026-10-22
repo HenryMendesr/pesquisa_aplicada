@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       name="description"
-      content="Loja experimental para demonstrar resiliência, diagnóstico e preservação de compra durante uma falha de pagamento."
+      content="Laboratório de testes para demonstrar contenção de falhas, recuperação e preservação do carrinho."
     />
-    <title>Nexo — uma compra que pode continuar</title>
+    <title>Nexo — laboratório de testes e isolamento de falhas</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231c4236'/%3E%3Cpath d='M18 46V18l28 28V18' stroke='%23e7f7c0' stroke-width='7' fill='none'/%3E%3C/svg%3E"
@@ -24,95 +24,67 @@
         ></a
       >
       <nav aria-label="Navegação">
-        <a href="#products">Coleção</a><a href="#lab">Laboratório</a
-        ><a href="#evidence">Evidências</a>
+        <a href="#lab">Testes</a><a href="#isolation">Isolamento</a
+        ><a href="#evidence">Evidências</a
+        ><a href="#application">Aplicação de apoio</a>
       </nav>
       <span class="demo-tag"><span></span> Ambiente de demonstração</span>
     </header>
     <main>
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">TECNOLOGIA QUE ACOMPANHA VOCÊ</p>
-          <h1>
-            Boas escolhas.<br />Uma compra que<br /><em>pode continuar.</em>
-          </h1>
-          <p class="intro">
-            Se o pagamento parar, sua experiência não precisa parar junto.
-            Explore a loja e veja a resiliência em ação.
+      <section class="dashboard-intro">
+        <div>
+          <p class="eyebrow">PESQUISA APLICADA · LABORATÓRIO DE RESILIÊNCIA</p>
+          <h1>Provoque a falha.<br /><em>Verifique o isolamento.</em></h1>
+          <p>
+            Execute os cenários, observe as respostas HTTP e confira se a falha
+            no pagamento fica contida, preservando catálogo e carrinho.
           </p>
-          <a class="primary hero-link" href="#products"
-            >Conhecer a coleção <span>↗</span></a
-          >
-          <div class="hero-note">
-            <span>◈</span> Carrinho preservado. Recuperação acompanhada.
-          </div>
         </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="art-disc"></div>
-          <div class="art-grid"></div>
-          <div class="headphone-arc"></div>
-          <div class="ear left"></div>
-          <div class="ear right"></div>
-          <div class="floating-label">
-            <span class="small-dot"></span> Feito para seguir em frente
-          </div>
-          <span class="art-caption">CONEXÕES MELHORES, TODOS OS DIAS.</span>
-        </div>
-      </section>
-      <section class="trust-strip">
-        <span><b>01</b> Escolha seus produtos</span><i></i
-        ><span><b>02</b> Teste um incidente</span><i></i
-        ><span><b>03</b> Retome com segurança</span>
-      </section>
-      <div class="commerce-layout">
-        <section class="collection" id="products">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">MENOS COMPLICAÇÃO. MAIS POSSIBILIDADES.</p>
-              <h2>Seu próximo favorito.</h2>
-            </div>
-            <span class="count-label">03 produtos selecionados</span>
-          </div>
-          <div id="product-list" class="product-grid"></div>
-          <div class="scope-note">
-            <span>ⓘ</span>
-            <p>
-              Loja acadêmica: os produtos e pagamentos são de teste. Nenhum
-              valor é cobrado. Seu carrinho fica salvo somente neste navegador.
-            </p>
-          </div>
-        </section>
-        <aside class="cart" aria-labelledby="cart-title">
-          <div class="cart-heading">
-            <h2 id="cart-title">Seu carrinho <span id="cart-count">0</span></h2>
-            <span>↗</span>
-          </div>
-          <div id="cart-items"></div>
-          <div id="payment-notice" class="payment-notice" hidden></div>
-          <div class="cart-total">
-            <span>Total de teste</span><strong id="cart-total">R$ 0,00</strong>
-          </div>
-          <button class="primary checkout" id="checkout">
-            Finalizar compra de teste <span>→</span></button
-          ><button id="reconcile" class="secondary" hidden>
-            Consultar pagamento pendente
-          </button>
-          <p class="cart-foot">Sem dados de cartão. Sem cobrança real.</p>
-          <div id="order-result" role="status"></div>
+        <aside class="experiment-scope">
+          <span>ESCOPO DO EXPERIMENTO</span
+          ><strong>Falha controlada. Evidência observável.</strong>
+          <p>
+            API de pagamento sandbox na Vercel. A proteção é aplicada pelo
+            orquestrador do navegador; não é uma queda física de microsserviços.
+          </p>
         </aside>
-      </div>
+      </section>
       <section
-        class="notifications"
-        id="notifications"
+        class="experiment-metrics"
+        aria-label="Resumo observado"
         aria-live="polite"
-      ></section>
+      >
+        <article>
+          <span>Avaliação funcional</span
+          ><strong id="metric-tests">Não executada</strong
+          ><small id="metric-tests-detail">8 verificações disponíveis</small>
+        </article>
+        <article>
+          <span>Último HTTP do cenário</span
+          ><strong id="metric-http">Não verificada</strong
+          ><small>Registrada a partir de uma requisição</small>
+        </article>
+        <article>
+          <span>Proteção do pagamento</span
+          ><strong id="metric-isolation">Liberado</strong
+          ><small id="metric-isolation-detail"
+            >Sem incidente confirmado nesta sessão</small
+          >
+        </article>
+        <article>
+          <span>Evidências da sessão</span
+          ><strong id="metric-evidence">0 eventos</strong
+          ><small>Linha do tempo e relatório exportável</small>
+        </article>
+      </section>
       <section class="lab" id="lab">
         <div class="lab-head">
           <div>
-            <p class="eyebrow">POR TRÁS DA EXPERIÊNCIA</p>
-            <h2>Um incidente. Tudo à vista.</h2>
+            <p class="eyebrow">01 / EXECUÇÃO CONTROLADA</p>
+            <h2>Cenários e resultados dos testes.</h2>
             <p>
-              Introduza uma falha controlada e acompanhe o que muda na compra.
+              Execute a avaliação completa ou selecione um cenário para
+              investigar o comportamento da API.
             </p>
           </div>
           <span class="lab-badge">LABORATÓRIO DE RESILIÊNCIA</span>
@@ -139,7 +111,7 @@
               <button id="recover" class="recover-btn">
                 ↻ Restaurar e verificar pagamento</button
               ><button id="run-tests" class="test-btn">
-                ▷ Executar avaliação
+                ▷ Executar os 8 testes
               </button>
             </div>
             <p class="lab-note">
@@ -175,13 +147,64 @@
             </div>
           </div>
         </div>
-        <div id="test-results" hidden></div>
+        <div id="test-results" class="test-empty">
+          <strong>A avaliação ainda não foi executada.</strong>
+          <p>
+            Execute os 8 testes para verificar compra normal, HTTP 503, bloqueio
+            de novas chamadas, persistência, recuperação, recusa e timeout.
+            Nenhum resultado é presumido.
+          </p>
+        </div>
+      </section>
+      <section class="isolation-section" id="isolation">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 / CONTENÇÃO DO IMPACTO</p>
+            <h2>A falha fica no pagamento.</h2>
+          </div>
+          <a class="text-btn" href="#application">Ver efeito na aplicação ↗</a>
+        </div>
+        <div
+          class="isolation-map"
+          aria-label="Estado dos componentes do sandbox"
+        >
+          <article class="component available">
+            <span>01 · INTERFACE LOCAL</span>
+            <h3>Catálogo</h3>
+            <strong>Disponível</strong>
+            <p>Os produtos continuam acessíveis.</p>
+          </article>
+          <span class="map-connector" aria-hidden="true">→</span>
+          <article class="component available">
+            <span>02 · ESTADO NO NAVEGADOR</span>
+            <h3>Carrinho</h3>
+            <strong>Preservado</strong>
+            <p>Itens podem ser adicionados durante a falha técnica.</p>
+          </article>
+          <span class="map-connector" aria-hidden="true">→</span>
+          <article class="component" id="payment-component">
+            <span>03 · FUNÇÃO HTTP</span>
+            <h3>Pagamento sandbox</h3>
+            <strong id="isolation-payment-status">Não verificado</strong>
+            <p id="isolation-payment-detail">
+              Execute um cenário para observar a resposta.
+            </p>
+          </article>
+        </div>
+        <div class="isolation-conclusion" id="isolation-summary" role="status">
+          Hipótese a verificar: a indisponibilidade do pagamento suspende a
+          finalização, sem interromper o catálogo e o carrinho.
+        </div>
+        <p class="scope-note">
+          Este mapa descreve os componentes do sandbox. O teste demonstra
+          contenção na orquestração, não isolamento de processos ou containers.
+        </p>
       </section>
       <section class="evidence-section" id="evidence">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">DA OBSERVAÇÃO À EXPLICAÇÃO</p>
-            <h2>Evidências, não adivinhações.</h2>
+            <p class="eyebrow">03 / INSPEÇÃO E AUDITORIA</p>
+            <h2>Respostas HTTP e evidências.</h2>
           </div>
           <button id="export" class="text-btn">
             ↓ Exportar relatório JSON
@@ -230,10 +253,69 @@
           </div>
         </div>
       </section>
+      <details class="application-demo" id="application">
+        <summary>
+          <div>
+            <span class="eyebrow">APLICAÇÃO DE APOIO</span>
+            <h2>Confira o impacto na compra</h2>
+            <p>
+              Abra para adicionar produtos e comprovar que o carrinho continua
+              funcionando durante a falha.
+            </p>
+          </div>
+          <span class="expand-label">Abrir demonstração +</span>
+        </summary>
+        <div class="commerce-layout">
+          <section class="collection" id="products">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">APLICAÇÃO AUXILIAR PARA O EXPERIMENTO</p>
+                <h2>Produtos de teste</h2>
+              </div>
+              <span class="count-label">3 entradas para o carrinho</span>
+            </div>
+            <div id="product-list" class="product-grid"></div>
+            <div class="scope-note">
+              <span>ⓘ</span>
+              <p>
+                Loja acadêmica: os produtos e pagamentos são de teste. Nenhum
+                valor é cobrado. Seu carrinho fica salvo somente neste
+                navegador.
+              </p>
+            </div>
+          </section>
+          <aside class="cart" aria-labelledby="cart-title">
+            <div class="cart-heading">
+              <h2 id="cart-title">
+                Seu carrinho <span id="cart-count">0</span>
+              </h2>
+              <span>↗</span>
+            </div>
+            <div id="cart-items"></div>
+            <div id="payment-notice" class="payment-notice" hidden></div>
+            <div class="cart-total">
+              <span>Total de teste</span
+              ><strong id="cart-total">R$ 0,00</strong>
+            </div>
+            <button class="primary checkout" id="checkout">
+              Finalizar compra de teste <span>→</span></button
+            ><button id="reconcile" class="secondary" hidden>
+              Consultar pagamento pendente
+            </button>
+            <p class="cart-foot">Sem dados de cartão. Sem cobrança real.</p>
+            <div id="order-result" role="status"></div>
+          </aside>
+        </div>
+        <section
+          class="notifications"
+          id="notifications"
+          aria-live="polite"
+        ></section>
+      </details>
       <section class="delivery">
         <div>
           <p class="eyebrow">PESQUISA APLICADA · DSR</p>
-          <h2>Construir. Avaliar. Melhorar.</h2>
+          <h2>Resultados para as entregas acadêmicas.</h2>
           <p>
             Um artefato para demonstrar a preservação da intenção de compra e a
             investigação de incidentes com evidências.

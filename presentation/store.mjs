@@ -136,6 +136,47 @@ function render() {
     ? `<div class="order-success"><b>Compra de teste confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)} · nenhum valor foi cobrado</div>`
     : "";
   $("#event-count").textContent = `${s.evidence.length} eventos`;
+  $("#metric-evidence").textContent = `${s.evidence.length} eventos`;
+  const lastHttp = s.evidence.findLast((event) => event.status != null);
+  $("#metric-http").textContent = lastHttp
+    ? `HTTP ${lastHttp.status}`
+    : "Não verificada";
+  $("#metric-isolation").textContent = unknown
+    ? "Consulta pendente"
+    : blocked
+      ? "Falha contida"
+      : "Liberado";
+  $("#metric-isolation-detail").textContent = blocked
+    ? "Finalização suspensa; carrinho preservado"
+    : "Finalização disponível no sandbox";
+  $("#payment-component").className =
+    "component" +
+    (blocked || unknown ? " isolated" : lastHttp ? " available" : "");
+  $("#isolation-payment-status").textContent = unknown
+    ? "Resultado desconhecido"
+    : blocked
+      ? "Finalização isolada"
+      : lastHttp
+        ? "Finalização liberada"
+        : "Não verificado";
+  $("#isolation-payment-detail").textContent = unknown
+    ? "Uma nova tentativa depende da consulta do pagamento pendente."
+    : blocked
+      ? "O circuito evita novas chamadas de finalização até verificar a recuperação."
+      : "O próximo pagamento ainda será validado pela API do sandbox.";
+  $("#isolation-summary").textContent = unknown
+    ? "Timeout observado: carrinho preservado e nova tentativa bloqueada até consultar o resultado original."
+    : blocked
+      ? "Falha contida no fluxo de pagamento: catálogo e carrinho continuam disponíveis. A compra só será liberada após a verificação da recuperação."
+      : "Finalização liberada. Introduza uma falha para verificar a contenção ou execute a avaliação completa para registrar os resultados.";
+  if (testReport) {
+    const passed = testReport.results.filter((result) => result.passed).length;
+    $("#metric-tests").textContent =
+      `${passed}/${testReport.results.length} aprovados`;
+    $("#metric-tests-detail").textContent =
+      `${testReport.results.length - passed} falhas · última avaliação nesta aba`;
+  }
+
   $("#timeline").innerHTML = s.evidence.length
     ? s.evidence
         .slice()
