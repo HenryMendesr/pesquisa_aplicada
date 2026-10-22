@@ -78,6 +78,7 @@ const store = new Store({
   },
   changed: () => render(),
 });
+let storageWarningShown = false;
 function render() {
   const s = store.state,
     blocked = s.breaker !== "closed",
@@ -146,9 +147,6 @@ function render() {
     : blocked
       ? "Falha contida"
       : "Liberado";
-  $("#metric-isolation-detail").textContent = blocked
-    ? "Finalização suspensa; carrinho preservado"
-    : "Finalização disponível no sandbox";
   $("#payment-component").className =
     "component" +
     (blocked || unknown ? " isolated" : lastHttp ? " available" : "");
@@ -159,22 +157,10 @@ function render() {
       : lastHttp
         ? "Finalização liberada"
         : "Não verificado";
-  $("#isolation-payment-detail").textContent = unknown
-    ? "Uma nova tentativa depende da consulta do pagamento pendente."
-    : blocked
-      ? "O circuito evita novas chamadas de finalização até verificar a recuperação."
-      : "O próximo pagamento ainda será validado pela API do sandbox.";
-  $("#isolation-summary").textContent = unknown
-    ? "Timeout observado: carrinho preservado e nova tentativa bloqueada até consultar o resultado original."
-    : blocked
-      ? "Falha contida no fluxo de pagamento: catálogo e carrinho continuam disponíveis. A compra só será liberada após a verificação da recuperação."
-      : "Finalização liberada. Introduza uma falha para verificar a contenção ou execute a avaliação completa para registrar os resultados.";
   if (testReport) {
     const passed = testReport.results.filter((result) => result.passed).length;
     $("#metric-tests").textContent =
       `${passed}/${testReport.results.length} aprovados`;
-    $("#metric-tests-detail").textContent =
-      `${testReport.results.length - passed} falhas · última avaliação nesta aba`;
   }
 
   $("#timeline").innerHTML = s.evidence.length
@@ -203,13 +189,15 @@ function render() {
       diagnosis.mode === "llm"
         ? `LLM real · ${diagnosis.model}`
         : "Por regras · sem IA";
+    $("#diagnosis-summary").hidden = false;
     $("#diagnosis-summary").textContent = diagnosis.summary;
     $("#diagnosis-refs").innerHTML =
       `<div class="refs">${diagnosis.evidence_ids.map((id) => `<a class="ref" href="#event-${esc(id)}" title="${esc(id)}">${esc(id.slice(0, 8))} ↗</a>`).join("")}</div>`;
   }
-  if (!storageAvailable)
-    $("#status-explanation").textContent =
-      "Armazenamento indisponível neste navegador. Os itens desta sessão podem se perder ao recarregar.";
+  if (!storageAvailable && !storageWarningShown) {
+    storageWarningShown = true;
+    toast("Não foi possível salvar o carrinho.");
+  }
 }
 async function action(fn) {
   if (busy) return;
@@ -471,11 +459,11 @@ $("#run-tests").addEventListener("click", () =>
   action(async () => {
     $("#test-results").hidden = false;
     $("#test-results").innerHTML =
-      '<div class="test-report"><h3>Executando avaliação pela API…</h3><p>Seu carrinho não será alterado.</p></div>';
+      '<div class="test-report"><h3>Executando avaliação pela API…</h3></div>';
     testReport = await evaluate();
     const passed = testReport.results.filter((r) => r.passed).length;
     $("#test-results").innerHTML =
-      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}<p>Resultados desta execução. Baixe o relatório JSON para consultar as evidências.</p></div>`;
+      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}</div>`;
     toast("Avaliação concluída. Confira os resultados observados.");
   }),
 );

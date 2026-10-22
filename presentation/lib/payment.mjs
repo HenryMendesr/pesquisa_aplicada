@@ -8,7 +8,6 @@ export const catalog = [
     price: 18990,
     icon: "headphones",
     color: "lavender",
-    description: "Seu foco, sua trilha. Som que acompanha o dia.",
   },
   {
     id: "keyboard",
@@ -17,7 +16,6 @@ export const catalog = [
     price: 24990,
     icon: "keyboard",
     color: "peach",
-    description: "Menos espaço. Mais ideias. Conforto em cada tecla.",
   },
   {
     id: "speaker",
@@ -26,7 +24,6 @@ export const catalog = [
     price: 12990,
     icon: "speaker",
     color: "mint",
-    description: "Pequena no tamanho, presente em todos os momentos.",
   },
 ];
 export const scenarios = new Set(["normal", "outage", "slow", "declined"]);

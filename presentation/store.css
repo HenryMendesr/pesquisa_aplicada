@@ -1575,3 +1575,44 @@ a:hover {
     align-self: end;
   }
 }
+
+/* Only controls, measured results and operational messages. */
+.dashboard-intro {
+  grid-template-columns: 1fr;
+  padding: 32px 0 24px;
+}
+.dashboard-intro h1 {
+  font-size: 36px;
+  margin: 0;
+  letter-spacing: -1.2px;
+}
+.experiment-metrics article {
+  padding: 16px 18px;
+}
+.experiment-metrics strong {
+  margin-bottom: 0;
+}
+.lab-head {
+  margin-bottom: 22px;
+}
+.component {
+  min-height: 115px;
+  padding: 22px;
+}
+.component h3 {
+  margin: 0 0 12px;
+}
+.application-demo > summary {
+  padding: 21px 0;
+}
+.collection .section-heading {
+  margin-bottom: 20px;
+}
+@media (max-width: 600px) {
+  .dashboard-intro h1 {
+    font-size: 29px;
+  }
+  .component {
+    min-height: 95px;
+  }
+}
