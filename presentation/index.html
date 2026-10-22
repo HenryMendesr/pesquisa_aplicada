@@ -1,89 +1,2288 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Diagnóstico distribuído — Loja virtual</title>
-  <meta name="description" content="Demonstração do incidente de consulta de pedidos.">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23131a2a'/%3E%3Cpath d='M14 19h9l4 24h24l5-17H25' fill='none' stroke='%235ee6a8' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='31' cy='50' r='3' fill='%235ee6a8'/%3E%3Ccircle cx='48' cy='50' r='3' fill='%235ee6a8'/%3E%3C/svg%3E">
-  <style>
-    :root{color-scheme:dark;--bg:#0a0e18;--panel:#121827;--line:#283149;--text:#f4f7ff;--muted:#9aa7bd;--green:#5ee6a8;--red:#ff6b78;--blue:#7cb8ff;--amber:#ffc46b}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 15% 0,#18213a 0,transparent 34%),var(--bg);color:var(--text);font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}
-    main{width:min(1120px,calc(100% - 32px));margin:auto;padding:32px 0 48px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:24px}
-    h1{font-size:clamp(1.8rem,4vw,3rem);line-height:1.05;margin:0 0 10px;letter-spacing:-.04em}.lead{max-width:720px;margin:0;color:var(--muted);font-size:1.05rem}.live{display:flex;align-items:center;gap:9px;white-space:nowrap;color:var(--muted)}.dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 16px var(--green)}
-    .actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}button{border:1px solid var(--line);border-radius:14px;padding:17px 18px;background:#171e30;color:var(--text);font:700 1rem/1.2 inherit;cursor:pointer;transition:.18s transform,.18s border-color,.18s background}button:hover{transform:translateY(-2px);border-color:var(--blue)}button:disabled{opacity:.45;cursor:wait;transform:none}.normal{border-color:#28684f}.failure{border-color:#7b3540}.recover{border-color:#315c8c}.overload{border-color:#8a6330;color:#ffd08a}
-    .result{border:1px solid var(--line);background:linear-gradient(145deg,#141b2c,#0f1421);border-radius:20px;padding:24px;min-height:220px}.result-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}h2{margin:4px 0 6px;font-size:1.6rem}.summary{margin:0;color:var(--muted);max-width:740px}.badge{padding:7px 11px;border-radius:999px;background:#233047;color:var(--blue);font-weight:800;font-size:.82rem}.badge.ok{background:#173c31;color:var(--green)}.badge.bad{background:#4b2027;color:#ff9aa3}
-    .checks{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#0c111d}.label{color:var(--muted);font-size:.85rem}.value{font-size:1.45rem;font-weight:850;margin-top:3px}.value.good{color:var(--green)}.value.bad{color:var(--red)}.value.warn{color:var(--amber)}.meta{font-size:.78rem;color:var(--muted);margin-top:3px}
-    .flow{display:flex;align-items:center;gap:10px;margin-top:20px;overflow:auto;padding-bottom:2px}.node{padding:11px 14px;border-radius:11px;border:1px solid var(--line);background:#0c111d;min-width:120px;text-align:center;font-weight:750}.node.good{border-color:#28684f}.node.bad{border-color:#7b3540;color:#ff9aa3}.arrow{color:var(--muted);font-size:1.3rem}.details{display:flex;justify-content:space-between;gap:16px;margin-top:18px;color:var(--muted);font-size:.84rem;flex-wrap:wrap}code{color:#b8d8ff}.empty{display:grid;place-items:center;min-height:170px;color:var(--muted);text-align:center}.spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}@keyframes spin{to{transform:rotate(360deg)}}
-    .load-banner{margin-top:18px;padding:14px 16px;border:1px solid #8a6330;background:#2e2417;border-radius:12px;color:#ffdca5;font-weight:700}.ai{margin-top:22px;border-top:1px solid var(--line);padding-top:22px}.ai-head{display:flex;align-items:center;justify-content:space-between;gap:16px}.ai h3{font-size:1.3rem;margin:4px 0}.ai-summary{font-size:1rem;margin:12px 0;color:#dce5f6}.real{display:inline-flex;align-items:center;gap:7px;color:var(--green);font-size:.8rem;font-weight:800}.real:before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green)}
-    .hypotheses{display:grid;gap:10px;margin:15px 0}.hypothesis{background:#0c111d;border:1px solid var(--line);border-radius:12px;padding:14px}.hypothesis strong{color:var(--blue)}.ids{margin-top:8px;color:var(--muted);font-size:.78rem;word-break:break-all}.evidence-title{margin:20px 0 10px;font-size:1rem}.evidence-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.evidence{border-left:3px solid var(--blue);background:#0c111d;border-radius:8px;padding:11px 12px;font-size:.84rem}.evidence.bad{border-color:var(--red)}.evidence small{display:block;color:var(--muted);margin-top:5px;word-break:break-all}.trace{display:flex;flex-wrap:wrap;gap:12px 22px;margin-top:18px;padding-top:15px;border-top:1px dashed var(--line);color:var(--muted);font-size:.82rem}.trace code{word-break:break-all}.note{margin:18px 2px 0;color:var(--muted);font-size:.9rem}.note strong{color:var(--text)}
-    @media(max-width:760px){main{padding-top:22px}.top{display:block}.live{margin-top:14px}.actions,.checks,.evidence-grid{grid-template-columns:1fr}.result-head,.ai-head{display:block}.badge{display:inline-block;margin-top:12px}.flow{gap:6px}.node{min-width:104px}}
-  </style>
-</head>
-<body>
-  <main>
-    <section class="top">
-      <div><div class="eyebrow">Caso de uso · Loja virtual</div><h1>Consulta de pedido</h1><p class="lead">Mostre como uma dependência indisponível interrompe a operação mesmo quando o Gateway continua saudável.</p></div>
-      <div class="live"><span class="dot"></span> Ambiente local</div>
-    </section>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Loja experimental para demonstrar resiliência, diagnóstico e preservação de compra durante uma falha de pagamento."
+    />
+    <title>Nexo — uma compra que pode continuar</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231c4236'/%3E%3Cpath d='M18 46V18l28 28V18' stroke='%23e7f7c0' stroke-width='7' fill='none'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+  --bg: #f8f9f5;
+  --ink: #1c332c;
+  --muted: #707d75;
+  --green: #244c3d;
+  --lime: #dcf1b3;
+  --line: #dfe5dc;
+  --cream: #f0f2e9;
+  --red: #9d3c35;
+  --amber: #89631d;
+  font:
+    15px/1.6 system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input {
+  font: inherit;
+}
+button,
+a,
+input {
+  outline-offset: 5px;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+[hidden] {
+  display: none !important;
+}
+.header,
+main,
+footer {
+  max-width: 1336px;
+  margin: auto;
+}
+.header {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: -1.7px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-icon {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 9px;
+  background: var(--green);
+  color: var(--lime);
+  font-size: 28px;
+  font-style: italic;
+}
+.brand-dot {
+  color: #80a25a;
+  margin-left: -9px;
+}
+.header nav {
+  display: flex;
+  gap: 34px;
+  font-size: 13px;
+}
+.header nav a:hover {
+  color: #7c944f;
+}
+.demo-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  padding: 6px 12px;
+}
+.demo-tag > span,
+.small-dot {
+  width: 6px;
+  height: 6px;
+  background: #62945d;
+  border-radius: 50%;
+  display: inline-block;
+}
+main {
+  padding: 0 40px;
+}
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 55px;
+  padding: 65px 0 48px;
+  align-items: center;
+}
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0 0 19px;
+}
+.hero h1 {
+  font-size: clamp(42px, 4.4vw, 62px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -3px;
+  margin: 0 0 24px;
+}
+.hero h1 em {
+  font-style: normal;
+  color: #6d8651;
+}
+.intro {
+  max-width: 380px;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 27px;
+}
+.primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 0;
+  background: var(--green);
+  color: white;
+  border-radius: 7px;
+  padding: 15px 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.primary:hover {
+  background: #345f4c;
+}
+.hero-link {
+  display: inline-flex;
+  padding: 13px 20px;
+}
+.hero-note {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 24px;
+}
+.hero-note span {
+  font-size: 19px;
+  color: #789365;
+}
+.hero-art {
+  position: relative;
+  overflow: hidden;
+  height: 420px;
+  border-radius: 20px;
+  background: #e5ecda;
+}
+.art-disc {
+  width: 320px;
+  height: 320px;
+  border: 1px solid #cbd8bd;
+  border-radius: 50%;
+  position: absolute;
+  top: 40px;
+  left: calc(50% - 160px);
+  box-shadow:
+    0 0 0 35px #e1e9d5,
+    0 0 0 36px #d2ddc5;
+}
+.art-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#d6dfcb66 1px, transparent 1px),
+    linear-gradient(90deg, #d6dfcb66 1px, transparent 1px);
+  background-size: 45px 45px;
+  mask-image: linear-gradient(transparent, #0003);
+}
+.headphone-arc {
+  position: absolute;
+  width: 200px;
+  height: 220px;
+  border: 30px solid #365f4a;
+  border-bottom: 0;
+  border-radius: 120px 120px 20px 20px;
+  left: calc(50% - 100px);
+  top: 75px;
+  transform: rotate(-15deg);
+  box-shadow:
+    inset 7px 7px 8px #1d3b2b55,
+    6px -3px 0 #5c7e65;
+}
+.ear {
+  position: absolute;
+  width: 62px;
+  height: 116px;
+  border: 9px solid #335641;
+  border-radius: 25px;
+  background: linear-gradient(110deg, #567561, #233f2f);
+  top: 208px;
+  box-shadow: 7px 10px 10px #31503133;
+  transform: rotate(-15deg);
+}
+.ear.left {
+  left: calc(50% - 109px);
+}
+.ear.right {
+  left: calc(50% + 59px);
+  top: 160px;
+}
+.floating-label {
+  position: absolute;
+  bottom: 60px;
+  left: 30px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 15px;
+  background: #fffffff0;
+  border: 1px solid #fff;
+  border-radius: 7px;
+  font-size: 10px;
+  box-shadow: 0 7px 30px #3856310d;
+}
+.art-caption {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  letter-spacing: 1.3px;
+  font-size: 8px;
+  color: #7a8d70;
+}
+.trust-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 21px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+.trust-strip b {
+  color: #7b925b;
+  font-weight: 500;
+  margin-right: 12px;
+}
+.trust-strip i {
+  height: 18px;
+  border-left: 1px solid var(--line);
+}
+.commerce-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 35px;
+  padding: 58px 0;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 27px;
+}
+.section-heading .eyebrow {
+  margin-bottom: 9px;
+  font-size: 8px;
+  letter-spacing: 1.6px;
+}
+h2 {
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  margin: 0;
+}
+.count-label {
+  font-size: 9px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 17px;
+}
+.product {
+  min-width: 0;
+}
+.product-art {
+  height: 180px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  margin-bottom: 17px;
+  overflow: hidden;
+}
+.product-art::after {
+  content: "";
+  position: absolute;
+  bottom: 35px;
+  left: 20%;
+  right: 20%;
+  height: 14px;
+  border-radius: 50%;
+  background: #00000012;
+  filter: blur(7px);
+}
+.product-art svg {
+  width: 110px;
+  height: 110px;
+  position: relative;
+  z-index: 1;
+  transform: rotate(-9deg);
+  filter: drop-shadow(3px 6px 3px #0002);
+}
+.lavender {
+  background: #eae7f2;
+}
+.peach {
+  background: #f2e6d9;
+}
+.mint {
+  background: #e2ece4;
+}
+.product-category {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.product h3 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 3px 0;
+}
+.product-description {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+  min-height: 34px;
+  margin: 5px 0 15px;
+}
+.product-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.product-bottom strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.add-btn {
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 20px;
+}
+.add-btn:hover {
+  background: var(--lime);
+}
+.scope-note {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.scope-note p {
+  margin: 0;
+}
+.scope-note > span {
+  font-size: 15px;
+}
+.cart {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 23px;
+  align-self: start;
+}
+.cart-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+  margin-bottom: 12px;
+}
+.cart h2 {
+  font-size: 18px;
+  letter-spacing: -0.4px;
+}
+.cart h2 > span {
+  font-size: 10px;
+  border-radius: 50%;
+  padding: 3px 7px;
+  background: var(--cream);
+  margin-left: 7px;
+}
+.cart-heading > span {
+  font-size: 20px;
+}
+.empty-cart {
+  padding: 28px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+.empty-cart span {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+.cart-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef1eb;
+}
+.cart-item h4 {
+  font-size: 12px;
+  margin: 0;
+}
+.cart-item small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.remove {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 18px;
+  padding: 4px 6px;
+}
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin: 21px 0;
+}
+.cart-total strong {
+  font-size: 19px;
+  letter-spacing: -0.5px;
+}
+.checkout {
+  width: 100%;
+  font-size: 11px;
+  padding: 13px 14px;
+}
+.cart-foot {
+  text-align: center;
+  font-size: 8px;
+  color: var(--muted);
+  margin: 12px 0 0;
+}
+.payment-notice {
+  background: #fff5e3;
+  color: #805c23;
+  border: 1px solid #eddfbe;
+  border-radius: 7px;
+  padding: 12px;
+  font-size: 10px;
+  margin-top: 15px;
+}
+.payment-notice p {
+  margin: 0 0 8px;
+}
+.payment-notice button {
+  font-size: 10px;
+  background: white;
+  color: var(--ink);
+  border: 1px solid #ddcba8;
+  border-radius: 5px;
+  padding: 7px 10px;
+}
+.order-success {
+  background: #eff6e8;
+  color: #41602c;
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 12px;
+  margin-top: 15px;
+  overflow-wrap: anywhere;
+}
+.secondary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 15px;
+  font-size: 11px;
+  color: var(--ink);
+  margin-top: 12px;
+}
+.notifications:empty {
+  display: none;
+}
+.notification {
+  padding: 16px 20px;
+  border-radius: 8px;
+  border: 1px solid #b8cba0;
+  background: #edf4e1;
+  margin-bottom: 22px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.notification b {
+  font-weight: 600;
+}
+.notification small {
+  display: block;
+  color: #6c7b5d;
+  font-size: 9px;
+}
+.lab {
+  padding: 35px;
+  background: #1d362d;
+  border-radius: 14px;
+  color: #f4f8f1;
+}
+.lab-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 20px;
+}
+.lab .eyebrow {
+  color: #b8d19a;
+  font-size: 8px;
+  margin-bottom: 10px;
+}
+.lab h2 {
+  font-size: 29px;
+  letter-spacing: -0.7px;
+}
+.lab-head p:not(.eyebrow) {
+  font-size: 11px;
+  color: #a3b5a8;
+  margin: 12px 0 0;
+}
+.lab-badge {
+  font-size: 7px;
+  letter-spacing: 1px;
+  border: 1px solid #49604e;
+  color: #c4d8af;
+  border-radius: 4px;
+  padding: 6px 9px;
+  white-space: nowrap;
+}
+.lab-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 35px;
+}
+.scenario-label {
+  font-size: 8px;
+  letter-spacing: 1.4px;
+  color: #97ac9d;
+  margin-bottom: 14px;
+}
+.scenario-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.scenario-buttons button {
+  text-align: left;
+  background: #284337;
+  color: #e6eee1;
+  border: 1px solid #3e5848;
+  border-radius: 7px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 25px 1fr;
+  align-items: center;
+  gap: 2px 5px;
+}
+.scenario-buttons button > span {
+  grid-row: span 2;
+  font-size: 23px;
+  color: #bad4a1;
+}
+.scenario-buttons b {
+  font-size: 10px;
+  font-weight: 600;
+}
+.scenario-buttons small {
+  font-size: 8px;
+  color: #9db29f;
+}
+.scenario-buttons button.active {
+  background: #d9edb2;
+  border-color: #d9edb2;
+  color: #243f2e;
+}
+.scenario-buttons button.active > span,
+.scenario-buttons button.active small {
+  color: #526c3e;
+}
+.lab-actions {
+  display: flex;
+  gap: 9px;
+  margin-top: 14px;
+}
+.recover-btn,
+.test-btn {
+  border: 1px solid #52694f;
+  background: transparent;
+  color: #deebd3;
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-size: 9px;
+}
+.test-btn {
+  background: #33513e;
+}
+.lab-note {
+  font-size: 9px;
+  color: #95ab9b;
+  margin: 15px 0 0;
+}
+.status-panel {
+  background: #172d25;
+  border: 1px solid #3c5242;
+  border-radius: 8px;
+  padding: 20px;
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #34473a;
+  padding: 13px 0;
+  font-size: 10px;
+}
+.status-row > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #bdcdbd;
+}
+.status-row b {
+  font-weight: 500;
+  font-size: 9px;
+}
+.status-dot {
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  background: #c8a75d;
+  display: inline-block;
+}
+.status-dot.ok {
+  background: #accf83;
+}
+.status-dot.bad {
+  background: #eb9b88;
+}
+.status-explanation {
+  font-size: 9px;
+  color: #8da491;
+  line-height: 1.8;
+  margin-top: 15px;
+}
+.architecture {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 7px;
+  color: #a4b49f;
+  margin-top: 20px;
+}
+.architecture span {
+  border: 1px solid #3b5040;
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+.architecture b {
+  font-weight: 400;
+}
+.evidence-section {
+  padding: 58px 0;
+}
+.text-btn {
+  background: none;
+  border: 0;
+  font-size: 10px;
+  color: var(--green);
+  padding: 6px 0;
+}
+.evidence-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 25px;
+}
+.timeline-panel,
+.diagnosis-panel {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 22px;
+  min-width: 0;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.panel-heading h3 {
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+}
+.panel-heading > span {
+  font-size: 9px;
+  color: var(--muted);
+}
+.timeline {
+  max-height: 310px;
+  overflow: auto;
+}
+.event {
+  display: grid;
+  grid-template-columns: 45px 1fr auto;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef1eb;
+  font-size: 9px;
+}
+.event time {
+  color: var(--muted);
+  font-size: 8px;
+}
+.event b {
+  display: block;
+  font-weight: 500;
+  font-size: 10px;
+}
+.event p {
+  font-size: 9px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 4px 0;
+}
+.event code {
+  font-size: 7px;
+  color: #7c887b;
+  overflow-wrap: anywhere;
+}
+.http {
+  align-self: start;
+  font-size: 8px;
+  background: #eff4e9;
+  color: #4d723c;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+.http.bad {
+  background: #fbece6;
+  color: #994f42;
+}
+.mode-tag {
+  border: 1px solid var(--line);
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 8px !important;
+}
+.diagnosis-panel > p {
+  font-size: 12px;
+  color: #657464;
+  line-height: 1.9;
+}
+.diagnosis-limit {
+  font-size: 9px !important;
+  color: #899284 !important;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 15px 0;
+}
+.ref {
+  background: #f0f4eb;
+  color: #687d59;
+  border: 0;
+  padding: 4px 7px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 8px;
+}
+.llm-settings {
+  margin-top: 14px;
+  font-size: 9px;
+  color: var(--muted);
+}
+.llm-settings summary {
+  cursor: pointer;
+}
+.llm-settings label {
+  display: block;
+  margin-top: 12px;
+}
+.llm-settings input {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--line);
+  padding: 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+.delivery {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 55px;
+  border-top: 1px solid var(--line);
+  padding: 40px 0 50px;
+}
+.delivery .eyebrow {
+  font-size: 8px;
+  margin-bottom: 12px;
+}
+.delivery h2 {
+  font-size: 27px;
+}
+.delivery p {
+  font-size: 11px;
+  color: var(--muted);
+  max-width: 350px;
+}
+.delivery > div:last-child {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+.delivery article > span {
+  font-size: 8px;
+  color: #829068;
+  letter-spacing: 1px;
+}
+.delivery h3 {
+  font-weight: 600;
+  font-size: 13px;
+  margin: 7px 0;
+}
+.delivery article p {
+  font-size: 10px;
+}
+footer {
+  border-top: 1px solid var(--line);
+  padding: 23px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+footer .brand {
+  font-size: 23px;
+}
+footer p,
+footer > a:last-child {
+  font-size: 9px;
+  color: var(--muted);
+}
+.toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #263c2f;
+  color: #f0f7e5;
+  padding: 14px 22px;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px #142a2433;
+  font-size: 12px;
+  max-width: min(90vw, 600px);
+  z-index: 20;
+}
+.test-report {
+  margin-top: 25px;
+  padding: 22px;
+  border: 1px solid #4b614c;
+  border-radius: 8px;
+  background: #172d25;
+}
+.test-report h3 {
+  font-weight: 500;
+  font-size: 17px;
+  margin: 0 0 15px;
+}
+.test-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 7px 0;
+  font-size: 11px;
+  border-bottom: 1px solid #334a39;
+}
+.test-row small {
+  color: #c8dfae;
+}
+.test-row.fail small {
+  color: #f3b2a2;
+}
+.test-report p {
+  font-size: 10px;
+  color: #9cb09e;
+}
+.event:target {
+  background: #eef4e5;
+}
+a:hover {
+  text-decoration: underline;
+}
+.hero-link:hover,
+.brand:hover {
+  text-decoration: none;
+}
+@media (min-width: 1500px) {
+  .hero {
+    gap: 90px;
+  }
+  .hero-art {
+    height: 450px;
+  }
+}
+@media (max-width: 1000px) {
+  .commerce-layout {
+    grid-template-columns: 1fr 280px;
+    gap: 22px;
+  }
+  .product-grid {
+    gap: 12px;
+  }
+  .product-art {
+    height: 140px;
+  }
+  .product-art svg {
+    width: 85px;
+    height: 85px;
+  }
+  .product-description {
+    min-height: 48px;
+  }
+  .lab {
+    padding: 26px;
+  }
+  .lab-layout {
+    gap: 20px;
+  }
+  .hero {
+    gap: 30px;
+  }
+  .hero-art {
+    height: 370px;
+  }
+  .hero h1 {
+    font-size: 46px;
+  }
+}
+@media (max-width: 760px) {
+  .header {
+    height: 78px;
+    padding: 0 20px;
+  }
+  .header nav {
+    gap: 16px;
+    font-size: 11px;
+  }
+  .demo-tag {
+    display: none;
+  }
+  main {
+    padding: 0 20px;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 40px 0 30px;
+    gap: 30px;
+  }
+  .hero h1 {
+    font-size: 48px;
+  }
+  .hero-art {
+    height: 330px;
+  }
+  .headphone-arc {
+    top: 40px;
+  }
+  .ear.left {
+    top: 173px;
+  }
+  .ear.right {
+    top: 125px;
+  }
+  .art-disc {
+    top: 5px;
+  }
+  .floating-label {
+    bottom: 32px;
+  }
+  .trust-strip {
+    gap: 12px;
+    font-size: 8px;
+    justify-content: space-between;
+  }
+  .trust-strip b {
+    display: block;
+    margin-bottom: 4px;
+  }
+  .commerce-layout {
+    grid-template-columns: 1fr;
+    padding: 35px 0;
+    gap: 30px;
+  }
+  .product-grid {
+    gap: 14px;
+  }
+  .product-art {
+    height: 150px;
+  }
+  .product-description {
+    min-height: 45px;
+  }
+  .cart {
+    width: 100%;
+  }
+  .lab-layout,
+  .evidence-layout,
+  .delivery {
+    grid-template-columns: 1fr;
+  }
+  .lab-head {
+    display: block;
+  }
+  .lab-badge {
+    display: inline-block;
+    margin-top: 15px;
+  }
+  .lab h2 {
+    font-size: 26px;
+  }
+  .lab-layout {
+    gap: 25px;
+  }
+  .lab-actions {
+    flex-wrap: wrap;
+  }
+  .evidence-section {
+    padding: 40px 0;
+  }
+  .section-heading {
+    align-items: start;
+  }
+  .count-label {
+    display: none;
+  }
+  .section-heading h2 {
+    font-size: 25px;
+  }
+  .delivery {
+    gap: 25px;
+    padding: 35px 0;
+  }
+  .delivery > div:last-child {
+    gap: 20px;
+  }
+  footer {
+    padding: 20px;
+    flex-wrap: wrap;
+  }
+  .product h3 {
+    font-size: 13px;
+  }
+  .product-bottom strong {
+    font-size: 12px;
+  }
+  .product-description {
+    font-size: 9px;
+  }
+  .eyebrow {
+    font-size: 9px;
+  }
+  .header .brand {
+    font-size: 25px;
+  }
+}
+@media (max-width: 430px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+  .product {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 0 15px;
+  }
+  .product-art {
+    grid-row: span 4;
+    height: 130px;
+    margin: 0;
+  }
+  .product-description {
+    min-height: 0;
+    margin: 0 0 7px;
+  }
+  .product-category {
+    align-self: end;
+  }
+  .product h3 {
+    font-size: 16px;
+  }
+  .product-bottom {
+    align-self: start;
+  }
+  .product-bottom strong {
+    font-size: 14px;
+  }
+  .product-grid {
+    gap: 24px;
+  }
+  .hero h1 {
+    font-size: 44px;
+  }
+  .hero-art {
+    height: 300px;
+  }
+  .lab {
+    padding: 23px 18px;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+  }
+  .scenario-buttons b {
+    font-size: 9px;
+  }
+}
 
-    <section class="actions" aria-label="Cenários da demonstração">
-      <button class="normal" data-action="normal">1 · Testar tudo certo</button>
-      <button class="failure" data-action="failure">2 · Provocar falha</button>
-      <button class="recover" data-action="recover">3 · Recuperar serviço</button>
-      <button class="overload" data-action="overload">4 · Sobrecarga + IA</button>
-    </section>
-
-    <section class="result" id="result" aria-live="polite">
-      <div class="empty">Escolha um cenário para executar o teste real.</div>
-    </section>
-    <p class="note"><strong>Leitura principal:</strong> health local responde se o processo está ativo; a consulta do pedido valida a operação completa e suas dependências.</p>
-  </main>
-  <script>
-    const result = document.querySelector('#result');
-    const buttons = [...document.querySelectorAll('button[data-action]')];
-    const labels = {normal:'Testando o fluxo e solicitando o diagnóstico à IA…',failure:'Interrompendo Users, coletando evidências e analisando com IA…',recover:'Restaurando Users e validando a recuperação com IA…',overload:'Disparando requisições concorrentes, coletando logs e analisando com IA…'};
-    const esc = value => String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const statusText = check => check.status == null ? 'OFFLINE' : `HTTP ${check.status}`;
-    const statusClass = (name, check, scenario) => {
-      if (name === 'users' && scenario === 'failure' && check.status == null) return 'bad';
-      if (name === 'order' && check.status !== 200) return 'bad';
-      return check.status === 200 ? 'good' : 'warn';
-    };
-    const evidenceText = item => {
-      if(item.kind==='snapshot') return item.states.map(s=>`${s.service}: ${s.reachable?'alcançável':'indisponível'}${s.status?` (HTTP ${s.status})`:''}`).join(' · ');
-      const dependency=item.dependency?` → ${item.dependency}`:'';
-      const status=item.status?` · HTTP ${item.status}`:'';
-      const error=item.error?` · ${item.error}`:'';
-      const message=item.message?` · ${item.message}`:'';
-      return `${item.service}${dependency} · ${item.event}${status}${error}${message}`;
-    };
-    function render(data){
-      const c=data.checks; const ai=data.ai; const isLoad=data.scenario==='overload'; const isBad=data.scenario==='failure'||isLoad;
-      const cards=[['gateway','Gateway',statusText(c.gateway),c.gateway.elapsed_ms==null?'sem resposta':`${c.gateway.elapsed_ms} ms`],['orders','Orders',statusText(c.orders),c.orders.elapsed_ms==null?'sem resposta':`${c.orders.elapsed_ms} ms`],['users','Users',isLoad?'SATURADO':statusText(c.users),isLoad?'health local ainda responde':(c.users.elapsed_ms==null?'sem resposta':`${c.users.elapsed_ms} ms`)],['order',isLoad?'Falhas na rajada':'Pedido 1',isLoad?`${data.load.failed_requests}/${data.load.total_requests}`:statusText(c.order),isLoad?`${data.load.concurrency} simultâneas · limite ${data.load.configured_limit}`:(c.order.elapsed_ms==null?'sem resposta':`${c.order.elapsed_ms} ms`)]];
-      result.innerHTML=`
-        <div class="result-head"><div><div class="eyebrow">Resultado observado</div><h2>${esc(data.title)}</h2><p class="summary">${esc(data.summary)}</p></div><span class="badge ${data.ok?(isBad?'bad':'ok'):'bad'}">${data.ok?'CENÁRIO CONFIRMADO':'VERIFICAR AMBIENTE'}</span></div>
-        <div class="checks">
-          ${cards.map(([key,label,value,meta])=>`<div class="card"><div class="label">${label}</div><div class="value ${isLoad&&(key==='users'||key==='order')?'bad':statusClass(key,c[key],data.scenario)}">${value}</div><div class="meta">${meta}</div></div>`).join('')}
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <a class="brand" href="#"
+        ><span class="brand-icon">n</span> nexo<span class="brand-dot"
+          >.</span
+        ></a
+      >
+      <nav aria-label="Navegação">
+        <a href="#products">Coleção</a><a href="#lab">Laboratório</a
+        ><a href="#evidence">Evidências</a>
+      </nav>
+      <span class="demo-tag"><span></span> Ambiente de demonstração</span>
+    </header>
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">TECNOLOGIA QUE ACOMPANHA VOCÊ</p>
+          <h1>
+            Boas escolhas.<br />Uma compra que<br /><em>pode continuar.</em>
+          </h1>
+          <p class="intro">
+            Se o pagamento parar, sua experiência não precisa parar junto.
+            Explore a loja e veja a resiliência em ação.
+          </p>
+          <a class="primary hero-link" href="#products"
+            >Conhecer a coleção <span>↗</span></a
+          >
+          <div class="hero-note">
+            <span>◈</span> Carrinho preservado. Recuperação acompanhada.
+          </div>
         </div>
-        ${isLoad?`<div class="load-banner">${data.load.total_requests} funções simultâneas → limite ${data.load.configured_limit} → ${data.load.failed_requests} falhas observadas</div>`:''}
-        <div class="flow"><div class="node good">Gateway</div><div class="arrow">→</div><div class="node good">Orders</div><div class="arrow">→</div><div class="node ${(isLoad||c.users.status!==200)?'bad':'good'}">${isLoad?'Users saturado':'Users'}</div><div class="arrow">→</div><div class="node ${(isLoad||c.order.status!==200)?'bad':'good'}">${isLoad?'Clientes afetados':(c.order.status===200?'Pedido exibido':'Cliente afetado')}</div></div>
-        <div class="details"><span>Request ID: <code>${esc(data.request_id)}</code></span><span>${esc(data.timestamp)}</span></div>
-        <section class="ai">
-          <div class="ai-head"><div><div class="eyebrow">Diagnóstico do artefato</div><h3>Conclusão da IA: ${esc(ai.outcome)}</h3></div><div class="real">IA REAL · ${esc(ai.model)}</div></div>
-          <p class="ai-summary">${esc(ai.summary)}</p>
-          <div class="hypotheses">${ai.hypotheses.map(h=>`<div class="hypothesis"><strong>${esc(h.service||'Cadeia distribuída')}</strong><br>${esc(h.description)}<div class="ids">Evidências citadas: ${h.evidence_ids.map(esc).join(', ')}</div></div>`).join('')}</div>
-          <h4 class="evidence-title">Evidências entregues à IA</h4>
-          <div class="evidence-grid">${ai.evidence.map(e=>`<div class="evidence ${(e.error||e.states?.some(s=>!s.reachable))?'bad':''}">${esc(evidenceText(e))}<small>ID ${esc(e.id)}</small></div>`).join('')}</div>
-          <div class="trace"><span>Execução persistida: <code>${esc(ai.run_id)}</code></span><span>${esc(ai.provider)} · ${Math.round(ai.duration_ms)} ms · simulado: ${ai.simulated?'sim':'não'}</span></div>
-        </section>`;
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-disc"></div>
+          <div class="art-grid"></div>
+          <div class="headphone-arc"></div>
+          <div class="ear left"></div>
+          <div class="ear right"></div>
+          <div class="floating-label">
+            <span class="small-dot"></span> Feito para seguir em frente
+          </div>
+          <span class="art-caption">CONEXÕES MELHORES, TODOS OS DIAS.</span>
+        </div>
+      </section>
+      <section class="trust-strip">
+        <span><b>01</b> Escolha seus produtos</span><i></i
+        ><span><b>02</b> Teste um incidente</span><i></i
+        ><span><b>03</b> Retome com segurança</span>
+      </section>
+      <div class="commerce-layout">
+        <section class="collection" id="products">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">MENOS COMPLICAÇÃO. MAIS POSSIBILIDADES.</p>
+              <h2>Seu próximo favorito.</h2>
+            </div>
+            <span class="count-label">03 produtos selecionados</span>
+          </div>
+          <div id="product-list" class="product-grid"></div>
+          <div class="scope-note">
+            <span>ⓘ</span>
+            <p>
+              Loja acadêmica: os produtos e pagamentos são de teste. Nenhum
+              valor é cobrado. Seu carrinho fica salvo somente neste navegador.
+            </p>
+          </div>
+        </section>
+        <aside class="cart" aria-labelledby="cart-title">
+          <div class="cart-heading">
+            <h2 id="cart-title">Seu carrinho <span id="cart-count">0</span></h2>
+            <span>↗</span>
+          </div>
+          <div id="cart-items"></div>
+          <div id="payment-notice" class="payment-notice" hidden></div>
+          <div class="cart-total">
+            <span>Total de teste</span><strong id="cart-total">R$ 0,00</strong>
+          </div>
+          <button class="primary checkout" id="checkout">
+            Finalizar compra de teste <span>→</span></button
+          ><button id="reconcile" class="secondary" hidden>
+            Consultar pagamento pendente
+          </button>
+          <p class="cart-foot">Sem dados de cartão. Sem cobrança real.</p>
+          <div id="order-result" role="status"></div>
+        </aside>
+      </div>
+      <section
+        class="notifications"
+        id="notifications"
+        aria-live="polite"
+      ></section>
+      <section class="lab" id="lab">
+        <div class="lab-head">
+          <div>
+            <p class="eyebrow">POR TRÁS DA EXPERIÊNCIA</p>
+            <h2>Um incidente. Tudo à vista.</h2>
+            <p>
+              Introduza uma falha controlada e acompanhe o que muda na compra.
+            </p>
+          </div>
+          <span class="lab-badge">LABORATÓRIO DE RESILIÊNCIA</span>
+        </div>
+        <div class="lab-layout">
+          <div>
+            <div class="scenario-label">01 / ESCOLHA O CENÁRIO</div>
+            <div class="scenario-buttons">
+              <button data-scenario="normal">
+                <span>↗</span><b>Operação normal</b
+                ><small>Pagamento disponível</small></button
+              ><button data-scenario="outage">
+                <span>ϟ</span><b>Falha no pagamento</b
+                ><small>Indisponibilidade HTTP 503</small></button
+              ><button data-scenario="slow">
+                <span>◷</span><b>Resposta perdida</b
+                ><small>Timeout HTTP 504</small></button
+              ><button data-scenario="declined">
+                <span>⊘</span><b>Pagamento recusado</b
+                ><small>Recusa comercial HTTP 402</small>
+              </button>
+            </div>
+            <div class="lab-actions">
+              <button id="recover" class="recover-btn">
+                ↻ Restaurar e verificar pagamento</button
+              ><button id="run-tests" class="test-btn">
+                ▷ Executar avaliação
+              </button>
+            </div>
+            <p class="lab-note">
+              O cenário afeta apenas esta sessão. A falha é injetada no sandbox
+              da API; não representa uma queda física de infraestrutura.
+            </p>
+          </div>
+          <div class="status-panel">
+            <div class="scenario-label">02 / ESTADO DA OPERAÇÃO</div>
+            <div class="status-row">
+              <span><i class="status-dot ok"></i> Catálogo e carrinho</span
+              ><b>Disponíveis</b>
+            </div>
+            <div class="status-row">
+              <span
+                ><i id="payment-dot" class="status-dot"></i> Pagamento de
+                teste</span
+              ><b id="payment-status">Aguardando verificação</b>
+            </div>
+            <div class="status-row">
+              <span
+                ><i id="circuit-dot" class="status-dot"></i> Proteção do
+                checkout</span
+              ><b id="circuit-status">Circuito fechado</b>
+            </div>
+            <div class="status-explanation" id="status-explanation">
+              O circuit breaker usa regras técnicas. A análise explica as
+              evidências; não executa reparos.
+            </div>
+            <div class="architecture">
+              <span>Navegador</span><b>→</b><span>API Vercel</span><b>→</b
+              ><span>Pagamento sandbox</span>
+            </div>
+          </div>
+        </div>
+        <div id="test-results" hidden></div>
+      </section>
+      <section class="evidence-section" id="evidence">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">DA OBSERVAÇÃO À EXPLICAÇÃO</p>
+            <h2>Evidências, não adivinhações.</h2>
+          </div>
+          <button id="export" class="text-btn">
+            ↓ Exportar relatório JSON
+          </button>
+        </div>
+        <div class="evidence-layout">
+          <div class="timeline-panel">
+            <div class="panel-heading">
+              <h3>Linha do tempo</h3>
+              <span id="event-count">0 eventos</span>
+            </div>
+            <div id="timeline" class="timeline"></div>
+          </div>
+          <div class="diagnosis-panel">
+            <div class="panel-heading">
+              <h3>Análise do incidente</h3>
+              <span id="diagnosis-mode" class="mode-tag">Por regras</span>
+            </div>
+            <p id="diagnosis-summary">
+              Execute um cenário para reunir evidências. A análise por regras
+              funciona sem credenciais; uma LLM real pode ser configurada
+              separadamente.
+            </p>
+            <div id="diagnosis-refs"></div>
+            <button id="analyze" class="secondary">
+              Analisar evidências atuais <span>↗</span>
+            </button>
+            <details class="llm-settings">
+              <summary>Usar LLM real (opcional)</summary>
+              <label
+                >Token do apresentador<input
+                  type="password"
+                  id="llm-token"
+                  autocomplete="off"
+                  placeholder="Configurado no backend da Vercel"
+              /></label>
+              <p>
+                A chave do provedor permanece no servidor. Este token fica
+                apenas em memória nesta aba.
+              </p>
+            </details>
+            <p class="diagnosis-limit">
+              Referências válidas permitem auditoria, mas não comprovam a
+              correção da hipótese. O modo de análise é sempre identificado.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="delivery">
+        <div>
+          <p class="eyebrow">PESQUISA APLICADA · DSR</p>
+          <h2>Construir. Avaliar. Melhorar.</h2>
+          <p>
+            Um artefato para demonstrar a preservação da intenção de compra e a
+            investigação de incidentes com evidências.
+          </p>
+        </div>
+        <div>
+          <article>
+            <span>PBL 8</span>
+            <h3>Melhorias do artefato</h3>
+            <p>
+              Carrinho persistente, suspensão da finalização, recuperação
+              verificada e aviso interno com consentimento.
+            </p>
+          </article>
+          <article>
+            <span>PJBL 3</span>
+            <h3>Construção e demonstração</h3>
+            <p>
+              Cenários executáveis, respostas HTTP, avaliação preliminar e
+              relatório exportável. A avaliação mede esta demonstração, não
+              acurácia geral de IA.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a class="brand" href="#">nexo.</a>
+      <p>Protótipo acadêmico · Nenhuma transação financeira real.</p>
+      <a href="docker.html">Experimento Docker original ↗</a>
+    </footer>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <script type="module">
+      const PRODUCTS = [
+  {
+    id: "headphones",
+    name: "Fone Studio",
+    category: "Áudio",
+    price: 18990,
+    icon: "headphones",
+    color: "lavender",
+    description: "Seu foco, sua trilha. Som que acompanha o dia.",
+  },
+  {
+    id: "keyboard",
+    name: "Teclado Compact",
+    category: "Workspace",
+    price: 24990,
+    icon: "keyboard",
+    color: "peach",
+    description: "Menos espaço. Mais ideias. Conforto em cada tecla.",
+  },
+  {
+    id: "speaker",
+    name: "Caixa Pocket",
+    category: "Áudio",
+    price: 12990,
+    icon: "speaker",
+    color: "mint",
+    description: "Pequena no tamanho, presente em todos os momentos.",
+  },
+];
+const fresh = () => ({
+  version: 1,
+  cart: [],
+  scenario: "normal",
+  breaker: "closed",
+  incident: null,
+  subscription: null,
+  notices: [],
+  evidence: [],
+  orders: [],
+  attempt: null,
+});
+function readState(storage) {
+  try {
+    const value = JSON.parse(storage.getItem("nexo-demo-v1"));
+    if (!value || value.version !== 1) return fresh();
+    if (
+      !Array.isArray(value.cart) ||
+      !Array.isArray(value.evidence) ||
+      !Array.isArray(value.orders) ||
+      !Array.isArray(value.notices) ||
+      !["normal", "outage", "slow", "declined"].includes(value.scenario) ||
+      !["closed", "open", "half-open"].includes(value.breaker)
+    )
+      return fresh();
+    if (
+      value.cart.some(
+        (item) =>
+          !PRODUCTS.some((p) => p.id === item.id) ||
+          !Number.isInteger(item.quantity) ||
+          item.quantity < 1 ||
+          item.quantity > 20,
+      )
+    )
+      return fresh();
+    return { ...fresh(), ...value };
+  } catch {
+    return fresh();
+  }
+}
+class Store {
+  constructor({
+    state = fresh(),
+    persist = () => {},
+    call,
+    changed = () => {},
+  }) {
+    this.state = state;
+    this.persist = persist;
+    this.call = call;
+    this.changed = changed;
+  }
+  save() {
+    this.persist(this.state);
+    this.changed();
+  }
+  event(event, status, details) {
+    const entry = {
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      event,
+      status,
+      details,
+    };
+    this.state.evidence.push(entry);
+    this.state.evidence = this.state.evidence.slice(-200);
+    this.save();
+    return entry;
+  }
+  total() {
+    return this.state.cart.reduce(
+      (sum, item) =>
+        sum + PRODUCTS.find((p) => p.id === item.id).price * item.quantity,
+      0,
+    );
+  }
+  add(id) {
+    if (this.state.attempt?.unknown)
+      throw new Error(
+        "Consulte o pagamento pendente antes de alterar o carrinho.",
+      );
+    if (!PRODUCTS.some((p) => p.id === id))
+      throw new Error("Produto inválido.");
+    const found = this.state.cart.find((item) => item.id === id);
+    if (found && found.quantity >= 20)
+      throw new Error("Limite de 20 unidades por produto.");
+    if (found) found.quantity++;
+    else this.state.cart.push({ id, quantity: 1 });
+    this.state.attempt = null;
+    this.event("cart_item_added", null, `${id}; itens salvos neste navegador`);
+  }
+  remove(id) {
+    if (this.state.attempt?.unknown)
+      throw new Error(
+        "Consulte o pagamento pendente antes de alterar o carrinho.",
+      );
+    this.state.cart = this.state.cart.filter((item) => item.id !== id);
+    this.state.attempt = null;
+    this.event("cart_item_removed", null, id);
+  }
+  async request(operation, attempt = this.state.attempt) {
+    const started = performance.now();
+    let result;
+    try {
+      result = await this.call({
+        operation,
+        scenario:
+          operation === "reconcile" ? attempt.scenario : this.state.scenario,
+        attemptId: attempt?.id,
+        items: attempt?.items,
+      });
+    } catch (error) {
+      this.event(
+        "payment_transport_error",
+        null,
+        "Não foi possível obter resposta da API. O status do serviço não foi confirmado.",
+      );
+      throw error;
     }
-    async function run(action){
-      buttons.forEach(b=>b.disabled=true);
-      result.innerHTML=`<div class="empty"><div><div class="spinner"></div>${labels[action]}</div></div>`;
-      try{const response=await fetch(`/api/${action}`,{method:'POST'});const data=await response.json();if(!response.ok)throw new Error(data.error||'Falha no teste');render(data)}catch(error){result.innerHTML=`<div class="empty"><div><strong>Não foi possível executar.</strong><br>${esc(error.message)}</div></div>`}finally{buttons.forEach(b=>b.disabled=false)}
+    this.event(
+      `payment_${operation}`,
+      result.status,
+      `${result.data.outcome || result.data.status || result.data.error}; ${Math.round(performance.now() - started)} ms`,
+    );
+    return result;
+  }
+  openCircuit() {
+    this.state.breaker = "open";
+    this.state.incident ||= crypto.randomUUID();
+    this.event(
+      "circuit_opened",
+      null,
+      "Proteção por regra técnica; novas finalizações suspensas. A IA não executou esta ação.",
+    );
+  }
+  async scenario(scenario) {
+    if (!["normal", "outage", "slow", "declined"].includes(scenario))
+      throw new Error("Cenário inválido.");
+    if (this.state.attempt?.unknown)
+      throw new Error(
+        "Reconcilie o pagamento pendente antes de trocar o cenário.",
+      );
+    this.state.scenario = scenario;
+    this.event("experiment_scenario_changed", null, scenario);
+    if (scenario === "outage") {
+      let response;
+      try {
+        response = await this.request("probe");
+      } catch (error) {
+        this.openCircuit();
+        throw error;
+      }
+      if (response.status >= 500) this.openCircuit();
+      else throw new Error("A API não confirmou a falha solicitada.");
+    } else if (this.state.breaker !== "closed") {
+      this.state.breaker = "half-open";
+      this.save();
+      for (let i = 0; i < 2; i++) {
+        let response;
+        try {
+          response = await this.request("probe");
+        } catch {
+          this.openCircuit();
+          return false;
+        }
+        if (response.status !== 200 || response.data.status !== "available") {
+          this.openCircuit();
+          return false;
+        }
+      }
+      this.state.breaker = "closed";
+      this.event(
+        "circuit_closed",
+        200,
+        "Duas sondagens funcionais confirmaram a recuperação no sandbox.",
+      );
+      if (
+        this.state.subscription?.incident === this.state.incident &&
+        !this.state.subscription.sent
+      ) {
+        this.state.subscription.sent = true;
+        this.state.notices = this.state.notices.slice(-19);
+        this.state.notices.push({
+          id: crypto.randomUUID(),
+          incident: this.state.incident,
+          at: new Date().toISOString(),
+          text: "O pagamento voltou a funcionar. Seu carrinho está salvo; você já pode retomar a compra.",
+        });
+        this.event(
+          "recovery_notice_created",
+          null,
+          "Aviso interno único, solicitado pelo comprador. Nenhum e-mail enviado.",
+        );
+      }
+      this.state.incident = null;
+      this.save();
+    } else {
+      const response = await this.request("probe");
+      if (response.status >= 500 && scenario !== "slow") this.openCircuit();
     }
-    buttons.forEach(button=>button.addEventListener('click',()=>run(button.dataset.action)));
-  </script>
-</body>
+    return true;
+  }
+  subscribe() {
+    if (!this.state.incident)
+      throw new Error("Não há incidente ativo para acompanhar.");
+    if (this.state.subscription?.incident === this.state.incident) return;
+    this.state.subscription = {
+      incident: this.state.incident,
+      sent: false,
+      at: new Date().toISOString(),
+    };
+    this.event(
+      "recovery_notice_requested",
+      null,
+      "Consentimento para aviso dentro desta aplicação.",
+    );
+  }
+  finish(data) {
+    if (
+      !this.state.orders.some((order) => order.receiptId === data.receiptId)
+    ) {
+      this.state.orders = this.state.orders.slice(-19);
+      this.state.orders.push({
+        receiptId: data.receiptId,
+        total: data.total,
+        at: new Date().toISOString(),
+        items: data.items,
+      });
+    }
+    this.state.cart = [];
+    this.state.attempt = null;
+    this.event(
+      "order_confirmed",
+      200,
+      `${data.receiptId}; pagamento simulado, sem cobrança real`,
+    );
+    return data;
+  }
+  async checkout() {
+    if (!this.state.cart.length)
+      throw new Error("Adicione um produto ao carrinho.");
+    if (this.state.attempt?.unknown)
+      throw new Error(
+        "Existe uma tentativa pendente. Consulte o resultado antes de tentar novamente.",
+      );
+    if (this.state.breaker !== "closed") {
+      this.event(
+        "checkout_blocked",
+        null,
+        "Circuito aberto; chamada de pagamento evitada e carrinho preservado.",
+      );
+      throw new Error("Pagamento indisponível. Seus itens continuam salvos.");
+    }
+    this.state.attempt ||= {
+      id: crypto.randomUUID(),
+      items: structuredClone(this.state.cart),
+      scenario: this.state.scenario,
+      unknown: false,
+    };
+    this.state.attempt.scenario = this.state.scenario;
+    this.save();
+    let result;
+    try {
+      result = await this.request("pay");
+    } catch (error) {
+      // Lost response: don't assume failure or create another payment.
+      this.state.attempt.unknown = true;
+      this.event(
+        "payment_response_lost",
+        null,
+        "Resultado desconhecido. Nova finalização bloqueada.",
+      );
+      throw error;
+    }
+    if (result.status === 200 && result.data.outcome === "approved")
+      return this.finish(result.data);
+    if (result.status === 504) {
+      this.state.attempt.unknown = true;
+      this.openCircuit();
+      throw new Error(
+        "Resposta de pagamento desconhecida. Consulte a tentativa pendente antes de continuar.",
+      );
+    }
+    if (result.status === 503) this.openCircuit();
+    else this.state.attempt = null;
+    this.save();
+    throw new Error(result.data.error || "Pagamento não concluído.");
+  }
+  async reconcile() {
+    if (!this.state.attempt?.unknown)
+      throw new Error("Nenhum pagamento pendente.");
+    const result = await this.request("reconcile");
+    if (
+      result.status === 402 ||
+      (result.status === 503 && this.state.attempt.scenario === "outage")
+    ) {
+      this.state.attempt = null;
+      this.save();
+      throw new Error(
+        "Consulta confirmou que o pagamento de teste não foi aprovado. Carrinho preservado.",
+      );
+    }
+    if (result.status !== 200 || result.data.outcome !== "approved")
+      throw new Error(
+        "Resultado ainda não confirmado. Carrinho preservado; não inicie nova cobrança.",
+      );
+    return this.finish(result.data);
+  }
+}
+function rules(evidence) {
+  const recent = evidence.slice(-32);
+  const failures = recent.filter((item) => item.status >= 500);
+  const declined = recent.filter((item) => item.status === 402);
+  return {
+    mode: "rules",
+    outcome: failures.length
+      ? "incident"
+      : recent.length
+        ? "no_incident"
+        : "insufficient_evidence",
+    summary: failures.length
+      ? "Foram observadas falhas técnicas no serviço de pagamento. O circuito protege a finalização e o carrinho permanece disponível. Um timeout exige consulta da tentativa; não comprova que o pagamento falhou. A origem interna da falha não pode ser inferida só pelo HTTP."
+      : declined.length
+        ? "Foi observada uma recusa de pagamento (HTTP 402). Isso é diferente de indisponibilidade técnica e não deve abrir o circuito."
+        : "As evidências selecionadas não mostram falha técnica de pagamento. Isso não comprova disponibilidade fora desta janela.",
+    evidence_ids: (failures.length
+      ? failures
+      : declined.length
+        ? declined
+        : recent.slice(-3)
+    ).map((item) => item.id),
+  };
+}
+
+const $ = (selector) => document.querySelector(selector);
+const esc = (value) =>
+  String(value ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+const money = (cents) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    cents / 100,
+  );
+const time = (date) =>
+  new Date(date).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+let busy = false,
+  diagnosis = null,
+  testReport = null,
+  storageAvailable = true,
+  timer;
+const icons = {
+  headphones:
+    '<path d="M28 83V60a32 32 0 0 1 64 0v23" fill="none" stroke="#665f83" stroke-width="12"/><rect x="20" y="60" width="20" height="38" rx="8" fill="#9186b1"/><rect x="80" y="60" width="20" height="38" rx="8" fill="#9186b1"/><path d="M30 41a34 34 0 0 1 58-2" fill="none" stroke="#c0b7da" stroke-width="4"/>',
+  keyboard:
+    '<rect x="6" y="35" width="110" height="56" rx="7" fill="#b79d80"/><rect x="9" y="32" width="104" height="52" rx="6" fill="#e1ccb2"/><path d="M18 43h87M18 55h87M18 67h87M27 38v33M42 38v33M57 38v22M72 38v22M87 38v33M102 38v33" stroke="#af967b" stroke-width="6"/><path d="M44 72h35" stroke="#f9efdc" stroke-width="7"/>',
+  speaker:
+    '<rect x="31" y="17" width="58" height="88" rx="18" fill="#456b56"/><rect x="35" y="20" width="50" height="80" rx="15" fill="#87a58c"/><circle cx="60" cy="60" r="20" fill="#52785f"/><circle cx="60" cy="60" r="14" fill="#6d9277"/><path d="M48 30h24" stroke="#d0e2cb" stroke-width="4" stroke-linecap="round"/>',
+};
+$("#product-list").innerHTML = PRODUCTS.map(
+  (p) =>
+    `<article class="product"><div class="product-art ${p.color}"><svg viewBox="0 0 120 120" aria-hidden="true">${icons[p.icon]}</svg></div><span class="product-category">${p.category}</span><h3>${p.name}</h3><p class="product-description">${p.description}</p><div class="product-bottom"><strong>${money(p.price)}</strong><button class="add-btn" data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho">+</button></div></article>`,
+).join("");
+function toast(message) {
+  clearTimeout(timer);
+  $("#toast").textContent = message;
+  $("#toast").hidden = false;
+  timer = setTimeout(() => ($("#toast").hidden = true), 6500);
+}
+async function call(body) {
+  const response = await fetch("/api/payments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+    signal: AbortSignal.timeout(12000),
+  });
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      "A API não respondeu em JSON. Confira se este deploy contém as funções /api.",
+    );
+  }
+  return { status: response.status, data };
+}
+let saved;
+try {
+  saved = readState(localStorage);
+} catch {
+  saved = fresh();
+  storageAvailable = false;
+}
+const store = new Store({
+  state: saved,
+  call,
+  persist: (state) => {
+    try {
+      localStorage.setItem("nexo-demo-v1", JSON.stringify(state));
+    } catch {
+      storageAvailable = false;
+    }
+  },
+  changed: () => render(),
+});
+function render() {
+  const s = store.state,
+    blocked = s.breaker !== "closed",
+    unknown = s.attempt?.unknown;
+  $("#cart-count").textContent = s.cart.reduce((n, i) => n + i.quantity, 0);
+  $("#cart-total").textContent = money(store.total());
+  $("#cart-items").innerHTML = s.cart.length
+    ? s.cart
+        .map((item) => {
+          const p = PRODUCTS.find((p) => p.id === item.id);
+          return `<div class="cart-item"><div><h4>${p.name}</h4><small>${item.quantity} un. × ${money(p.price)}</small></div><button class="remove" data-remove="${p.id}" aria-label="Remover ${p.name}">×</button></div>`;
+        })
+        .join("")
+    : '<div class="empty-cart"><span>⌑</span>Seu próximo favorito começa aqui.<br>Adicione um produto à coleção.</div>';
+  $("#checkout").disabled = busy || !s.cart.length || blocked || unknown;
+  $("#checkout").innerHTML = unknown
+    ? "Pagamento pendente de consulta"
+    : blocked
+      ? "Pagamento temporariamente suspenso"
+      : "Finalizar compra de teste <span>→</span>";
+  $("#reconcile").hidden = !unknown;
+  $("#reconcile").disabled = busy;
+  $("#payment-notice").hidden = !blocked && !unknown;
+  $("#payment-notice").innerHTML = unknown
+    ? "<p><strong>Não tente pagar novamente.</strong> A resposta é desconhecida. Consulte a tentativa pendente; seus itens estão preservados.</p>"
+    : `<p>O processamento de pagamentos está temporariamente indisponível. Seus itens continuam salvos. Deseja receber um aviso quando voltar?</p>${s.subscription?.incident === s.incident ? "<strong>Aviso solicitado. Acompanhe a recuperação nesta página.</strong>" : '<button id="subscribe">Quero receber um aviso</button>'}`;
+  $("#payment-status").textContent = unknown
+    ? "Resultado desconhecido"
+    : blocked
+      ? "Indisponível"
+      : s.scenario === "declined"
+        ? "Ativo · recusa de teste"
+        : s.scenario === "slow"
+          ? "Timeout preparado"
+          : s.evidence.some(
+                (e) => e.event === "payment_probe" || e.event === "payment_pay",
+              )
+            ? "Disponível"
+            : "Não verificado";
+  $("#payment-dot").className =
+    "status-dot " + (blocked || unknown ? "bad" : "ok");
+  $("#circuit-status").textContent = {
+    open: "Aberto · compra protegida",
+    "half-open": "Validando recuperação",
+    closed: "Fechado · compra liberada",
+  }[s.breaker];
+  $("#circuit-dot").className = "status-dot " + (blocked ? "bad" : "ok");
+  $("#notifications").innerHTML = s.notices
+    .slice(-3)
+    .map(
+      (n) =>
+        `<div class="notification"><span>✓</span><div><b>Você já pode continuar.</b> ${esc(n.text)}<small>Aviso interno solicitado · ${time(n.at)} · nenhuma mensagem externa enviada</small></div></div>`,
+    )
+    .join("");
+  $("#order-result").innerHTML = s.orders.length
+    ? `<div class="order-success"><b>Compra de teste confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)} · nenhum valor foi cobrado</div>`
+    : "";
+  $("#event-count").textContent = `${s.evidence.length} eventos`;
+  $("#timeline").innerHTML = s.evidence.length
+    ? s.evidence
+        .slice()
+        .reverse()
+        .map(
+          (e) =>
+            `<article class="event" id="event-${esc(e.id)}"><time>${time(e.timestamp)}</time><div><b>${esc(e.event)}</b><p>${esc(e.details)}</p><code>${esc(e.id)}</code></div>${e.status ? `<span class="http ${e.status >= 400 ? "bad" : ""}">${esc(e.status)}</span>` : ""}</article>`,
+        )
+        .join("")
+    : '<p class="empty-cart">As evidências da sua sessão aparecerão aqui.</p>';
+  document.querySelectorAll("[data-scenario]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.scenario === s.scenario);
+    button.disabled = busy || unknown;
+    button.setAttribute("aria-pressed", button.dataset.scenario === s.scenario);
+  });
+  document
+    .querySelectorAll("[data-add],[data-remove]")
+    .forEach((button) => (button.disabled = busy || unknown));
+  for (const id of ["recover", "analyze", "run-tests"])
+    $("#" + id).disabled = busy || (id === "recover" && unknown);
+  $("#export").disabled = busy;
+  if (diagnosis) {
+    $("#diagnosis-mode").textContent =
+      diagnosis.mode === "llm"
+        ? `LLM real · ${diagnosis.model}`
+        : "Por regras · sem IA";
+    $("#diagnosis-summary").textContent = diagnosis.summary;
+    $("#diagnosis-refs").innerHTML =
+      `<div class="refs">${diagnosis.evidence_ids.map((id) => `<a class="ref" href="#event-${esc(id)}" title="${esc(id)}">${esc(id.slice(0, 8))} ↗</a>`).join("")}</div>`;
+  }
+  if (!storageAvailable)
+    $("#status-explanation").textContent =
+      "Armazenamento indisponível neste navegador. Os itens desta sessão podem se perder ao recarregar.";
+}
+async function action(fn) {
+  if (busy) return;
+  busy = true;
+  render();
+  try {
+    await fn();
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    busy = false;
+    render();
+  }
+}
+$("#product-list").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-add]");
+  if (b)
+    action(() => {
+      store.add(b.dataset.add);
+      toast(
+        store.state.breaker === "closed"
+          ? "Item adicionado. Seu carrinho está salvo neste navegador."
+          : "Item adicionado. O pagamento está indisponível, mas seu carrinho está salvo.",
+      );
+    });
+});
+$("#cart-items").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-remove]");
+  if (b) action(() => store.remove(b.dataset.remove));
+});
+$("#payment-notice").addEventListener("click", (e) => {
+  if (e.target.closest("#subscribe"))
+    action(() => {
+      store.subscribe();
+      toast(
+        "Combinado. Você receberá um aviso aqui quando a recuperação for confirmada.",
+      );
+    });
+});
+$("#checkout").addEventListener("click", () =>
+  action(async () => {
+    await store.checkout();
+    toast("Compra de teste concluída. Nenhum valor foi cobrado.");
+  }),
+);
+$("#reconcile").addEventListener("click", () =>
+  action(async () => {
+    await store.reconcile();
+    toast(
+      "Resultado consultado: pagamento de teste confirmado, sem criar outra tentativa.",
+    );
+  }),
+);
+document.querySelectorAll("[data-scenario]").forEach((b) =>
+  b.addEventListener("click", () =>
+    action(async () => {
+      await store.scenario(b.dataset.scenario);
+      diagnosis = rules(store.state.evidence);
+      toast("Cenário aplicado e resposta da API registrada.");
+    }),
+  ),
+);
+$("#recover").addEventListener("click", () =>
+  action(async () => {
+    if (await store.scenario("normal"))
+      toast("Pagamento restaurado e verificado. Sua compra pode continuar.");
+    diagnosis = rules(store.state.evidence);
+  }),
+);
+$("#analyze").addEventListener("click", () =>
+  action(async () => {
+    const evidence = store.state.evidence.slice(-32),
+      token = $("#llm-token").value.trim();
+    if (!token) {
+      diagnosis = rules(evidence);
+      toast("Análise por regras concluída. Nenhuma LLM foi consultada.");
+      return;
+    }
+    try {
+      const response = await fetch("/api/diagnose", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ evidence }),
+        signal: AbortSignal.timeout(25000),
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.error || "Falha ao consultar a LLM.");
+      diagnosis = data;
+      store.event(
+        "llm_diagnosis_received",
+        200,
+        `Modelo: ${data.model}; análise sem execução de ações`,
+      );
+      toast("Diagnóstico da LLM recebido e referências validadas.");
+    } catch (error) {
+      diagnosis = rules(evidence);
+      toast(`${error.message} Exibindo análise por regras, sem IA.`);
+    }
+  }),
+);
+async function evaluate(api = call) {
+  const results = [],
+    evidence = [];
+  const check = (value, message) => {
+    if (!value) throw new Error(message);
+  };
+  async function test(name, fn) {
+    const start = performance.now();
+    try {
+      await fn();
+      results.push({
+        name,
+        passed: true,
+        durationMs: Math.round(performance.now() - start),
+      });
+    } catch (error) {
+      results.push({ name, passed: false, error: error.message });
+    }
+  }
+  const make = () => new Store({ call: api });
+  await test("Compra normal retorna HTTP 200 e comprovante", async () => {
+    const s = make();
+    s.add("headphones");
+    const r = await s.checkout();
+    check(
+      r.total === 18990 && !s.state.cart.length,
+      "Total ou conclusão incorretos",
+    );
+    evidence.push(...s.state.evidence);
+  });
+  await test("Falha técnica retorna HTTP 503 sem perder o carrinho", async () => {
+    const s = make();
+    s.add("keyboard");
+    s.state.scenario = "outage";
+    try {
+      await s.checkout();
+    } catch {}
+    check(
+      s.state.evidence.some((e) => e.status === 503) &&
+        s.state.cart.length === 1,
+      "Falha HTTP ou preservação não comprovadas",
+    );
+    evidence.push(...s.state.evidence);
+  });
+  await test("Circuito aberto evita uma nova chamada de pagamento", async () => {
+    const s = make();
+    s.add("speaker");
+    await s.scenario("outage");
+    const count = s.state.evidence.filter(
+      (e) => e.event === "payment_pay",
+    ).length;
+    try {
+      await s.checkout();
+    } catch {}
+    check(
+      s.state.evidence.some((e) => e.event === "checkout_blocked") &&
+        count ===
+          s.state.evidence.filter((e) => e.event === "payment_pay").length,
+      "Checkout não foi protegido",
+    );
+    evidence.push(...s.state.evidence);
+  });
+  await test("Carrinho sobrevive à restauração do estado salvo", async () => {
+    const s = make();
+    s.add("keyboard");
+    const restored = readState({ getItem: () => JSON.stringify(s.state) });
+    check(
+      restored.cart[0].quantity === 1 && restored.cart[0].id === "keyboard",
+      "Carrinho não restaurado",
+    );
+  });
+  await test("Duas sondagens de recuperação e um único aviso", async () => {
+    const s = make();
+    s.add("speaker");
+    await s.scenario("outage");
+    s.subscribe();
+    const before = s.state.evidence.length;
+    await s.scenario("normal");
+    await s.scenario("normal");
+    check(
+      s.state.notices.length === 1 &&
+        s.state.breaker === "closed" &&
+        s.state.cart.length === 1 &&
+        s.state.evidence
+          .slice(before)
+          .filter((e) => e.event === "payment_probe" && e.status === 200)
+          .length >= 2,
+      "Recuperação ou aviso incorretos",
+    );
+    evidence.push(...s.state.evidence);
+  });
+  await test("Recusa HTTP 402 mantém o circuito fechado", async () => {
+    const s = make();
+    s.add("headphones");
+    await s.scenario("declined");
+    try {
+      await s.checkout();
+    } catch {}
+    check(
+      s.state.breaker === "closed" &&
+        s.state.evidence.some((e) => e.status === 402) &&
+        s.state.cart.length === 1,
+      "Recusa confundida com falha técnica",
+    );
+    evidence.push(...s.state.evidence);
+  });
+  await test("Timeout bloqueia nova tentativa até reconciliação", async () => {
+    const s = make();
+    s.add("keyboard");
+    await s.scenario("slow");
+    try {
+      await s.checkout();
+    } catch {}
+    const id = s.state.attempt.id;
+    try {
+      await s.checkout();
+    } catch {}
+    check(
+      s.state.attempt.unknown &&
+        s.state.evidence.filter((e) => e.event === "payment_pay").length === 1,
+      "Nova tentativa indevida",
+    );
+    const r = await s.reconcile();
+    check(
+      r.attemptId === id && s.state.orders.length === 1 && !s.state.cart.length,
+      "Reconciliação não comprovada",
+    );
+    evidence.push(...s.state.evidence);
+  });
+  await test("Mesma chave produz o mesmo comprovante de teste", async () => {
+    const body = {
+      operation: "pay",
+      scenario: "normal",
+      attemptId: crypto.randomUUID(),
+      items: [{ id: "speaker", quantity: 1 }],
+    };
+    const a = await api(body),
+      b = await api(body);
+    check(
+      a.status === 200 &&
+        b.status === 200 &&
+        a.data.receiptId === b.data.receiptId,
+      "Comprovantes divergiram",
+    );
+  });
+  return {
+    executedAt: new Date().toISOString(),
+    scope:
+      "Avaliação funcional do sandbox; não mede acurácia de IA, pagamentos reais ou durabilidade de transações.",
+    results,
+    evidence,
+  };
+}
+$("#run-tests").addEventListener("click", () =>
+  action(async () => {
+    $("#test-results").hidden = false;
+    $("#test-results").innerHTML =
+      '<div class="test-report"><h3>Executando avaliação pela API…</h3><p>Seu carrinho não será alterado.</p></div>';
+    testReport = await evaluate();
+    const passed = testReport.results.filter((r) => r.passed).length;
+    $("#test-results").innerHTML =
+      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}<p>Amostra desta execução, usando cenários controlados. Não é teste de carga nem avaliação de acurácia da IA. Resultados disponíveis na exportação.</p></div>`;
+    toast("Avaliação concluída. Confira os resultados observados.");
+  }),
+);
+$("#export").addEventListener("click", () => {
+  const report = {
+    artifact: "Nexo · Pesquisa Aplicada",
+    version: "2.0.0",
+    exportedAt: new Date().toISOString(),
+    scope:
+      "Sandbox serverless, carrinho e evidências locais neste navegador. Nenhuma cobrança real, envio externo ou reparo por IA.",
+    state: store.state,
+    diagnosis,
+    evaluation: testReport,
+  };
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }),
+  );
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `nexo-evidencias-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+render();
+
+    </script>
+  </body>
 </html>

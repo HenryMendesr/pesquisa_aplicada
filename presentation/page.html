@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Loja experimental para demonstrar resiliência, diagnóstico e preservação de compra durante uma falha de pagamento."
+    />
+    <title>Nexo — uma compra que pode continuar</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231c4236'/%3E%3Cpath d='M18 46V18l28 28V18' stroke='%23e7f7c0' stroke-width='7' fill='none'/%3E%3C/svg%3E"
+    />
+    <style>
+      /* STYLES */
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <a class="brand" href="#"
+        ><span class="brand-icon">n</span> nexo<span class="brand-dot"
+          >.</span
+        ></a
+      >
+      <nav aria-label="Navegação">
+        <a href="#products">Coleção</a><a href="#lab">Laboratório</a
+        ><a href="#evidence">Evidências</a>
+      </nav>
+      <span class="demo-tag"><span></span> Ambiente de demonstração</span>
+    </header>
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">TECNOLOGIA QUE ACOMPANHA VOCÊ</p>
+          <h1>
+            Boas escolhas.<br />Uma compra que<br /><em>pode continuar.</em>
+          </h1>
+          <p class="intro">
+            Se o pagamento parar, sua experiência não precisa parar junto.
+            Explore a loja e veja a resiliência em ação.
+          </p>
+          <a class="primary hero-link" href="#products"
+            >Conhecer a coleção <span>↗</span></a
+          >
+          <div class="hero-note">
+            <span>◈</span> Carrinho preservado. Recuperação acompanhada.
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-disc"></div>
+          <div class="art-grid"></div>
+          <div class="headphone-arc"></div>
+          <div class="ear left"></div>
+          <div class="ear right"></div>
+          <div class="floating-label">
+            <span class="small-dot"></span> Feito para seguir em frente
+          </div>
+          <span class="art-caption">CONEXÕES MELHORES, TODOS OS DIAS.</span>
+        </div>
+      </section>
+      <section class="trust-strip">
+        <span><b>01</b> Escolha seus produtos</span><i></i
+        ><span><b>02</b> Teste um incidente</span><i></i
+        ><span><b>03</b> Retome com segurança</span>
+      </section>
+      <div class="commerce-layout">
+        <section class="collection" id="products">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">MENOS COMPLICAÇÃO. MAIS POSSIBILIDADES.</p>
+              <h2>Seu próximo favorito.</h2>
+            </div>
+            <span class="count-label">03 produtos selecionados</span>
+          </div>
+          <div id="product-list" class="product-grid"></div>
+          <div class="scope-note">
+            <span>ⓘ</span>
+            <p>
+              Loja acadêmica: os produtos e pagamentos são de teste. Nenhum
+              valor é cobrado. Seu carrinho fica salvo somente neste navegador.
+            </p>
+          </div>
+        </section>
+        <aside class="cart" aria-labelledby="cart-title">
+          <div class="cart-heading">
+            <h2 id="cart-title">Seu carrinho <span id="cart-count">0</span></h2>
+            <span>↗</span>
+          </div>
+          <div id="cart-items"></div>
+          <div id="payment-notice" class="payment-notice" hidden></div>
+          <div class="cart-total">
+            <span>Total de teste</span><strong id="cart-total">R$ 0,00</strong>
+          </div>
+          <button class="primary checkout" id="checkout">
+            Finalizar compra de teste <span>→</span></button
+          ><button id="reconcile" class="secondary" hidden>
+            Consultar pagamento pendente
+          </button>
+          <p class="cart-foot">Sem dados de cartão. Sem cobrança real.</p>
+          <div id="order-result" role="status"></div>
+        </aside>
+      </div>
+      <section
+        class="notifications"
+        id="notifications"
+        aria-live="polite"
+      ></section>
+      <section class="lab" id="lab">
+        <div class="lab-head">
+          <div>
+            <p class="eyebrow">POR TRÁS DA EXPERIÊNCIA</p>
+            <h2>Um incidente. Tudo à vista.</h2>
+            <p>
+              Introduza uma falha controlada e acompanhe o que muda na compra.
+            </p>
+          </div>
+          <span class="lab-badge">LABORATÓRIO DE RESILIÊNCIA</span>
+        </div>
+        <div class="lab-layout">
+          <div>
+            <div class="scenario-label">01 / ESCOLHA O CENÁRIO</div>
+            <div class="scenario-buttons">
+              <button data-scenario="normal">
+                <span>↗</span><b>Operação normal</b
+                ><small>Pagamento disponível</small></button
+              ><button data-scenario="outage">
+                <span>ϟ</span><b>Falha no pagamento</b
+                ><small>Indisponibilidade HTTP 503</small></button
+              ><button data-scenario="slow">
+                <span>◷</span><b>Resposta perdida</b
+                ><small>Timeout HTTP 504</small></button
+              ><button data-scenario="declined">
+                <span>⊘</span><b>Pagamento recusado</b
+                ><small>Recusa comercial HTTP 402</small>
+              </button>
+            </div>
+            <div class="lab-actions">
+              <button id="recover" class="recover-btn">
+                ↻ Restaurar e verificar pagamento</button
+              ><button id="run-tests" class="test-btn">
+                ▷ Executar avaliação
+              </button>
+            </div>
+            <p class="lab-note">
+              O cenário afeta apenas esta sessão. A falha é injetada no sandbox
+              da API; não representa uma queda física de infraestrutura.
+            </p>
+          </div>
+          <div class="status-panel">
+            <div class="scenario-label">02 / ESTADO DA OPERAÇÃO</div>
+            <div class="status-row">
+              <span><i class="status-dot ok"></i> Catálogo e carrinho</span
+              ><b>Disponíveis</b>
+            </div>
+            <div class="status-row">
+              <span
+                ><i id="payment-dot" class="status-dot"></i> Pagamento de
+                teste</span
+              ><b id="payment-status">Aguardando verificação</b>
+            </div>
+            <div class="status-row">
+              <span
+                ><i id="circuit-dot" class="status-dot"></i> Proteção do
+                checkout</span
+              ><b id="circuit-status">Circuito fechado</b>
+            </div>
+            <div class="status-explanation" id="status-explanation">
+              O circuit breaker usa regras técnicas. A análise explica as
+              evidências; não executa reparos.
+            </div>
+            <div class="architecture">
+              <span>Navegador</span><b>→</b><span>API Vercel</span><b>→</b
+              ><span>Pagamento sandbox</span>
+            </div>
+          </div>
+        </div>
+        <div id="test-results" hidden></div>
+      </section>
+      <section class="evidence-section" id="evidence">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">DA OBSERVAÇÃO À EXPLICAÇÃO</p>
+            <h2>Evidências, não adivinhações.</h2>
+          </div>
+          <button id="export" class="text-btn">
+            ↓ Exportar relatório JSON
+          </button>
+        </div>
+        <div class="evidence-layout">
+          <div class="timeline-panel">
+            <div class="panel-heading">
+              <h3>Linha do tempo</h3>
+              <span id="event-count">0 eventos</span>
+            </div>
+            <div id="timeline" class="timeline"></div>
+          </div>
+          <div class="diagnosis-panel">
+            <div class="panel-heading">
+              <h3>Análise do incidente</h3>
+              <span id="diagnosis-mode" class="mode-tag">Por regras</span>
+            </div>
+            <p id="diagnosis-summary">
+              Execute um cenário para reunir evidências. A análise por regras
+              funciona sem credenciais; uma LLM real pode ser configurada
+              separadamente.
+            </p>
+            <div id="diagnosis-refs"></div>
+            <button id="analyze" class="secondary">
+              Analisar evidências atuais <span>↗</span>
+            </button>
+            <details class="llm-settings">
+              <summary>Usar LLM real (opcional)</summary>
+              <label
+                >Token do apresentador<input
+                  type="password"
+                  id="llm-token"
+                  autocomplete="off"
+                  placeholder="Configurado no backend da Vercel"
+              /></label>
+              <p>
+                A chave do provedor permanece no servidor. Este token fica
+                apenas em memória nesta aba.
+              </p>
+            </details>
+            <p class="diagnosis-limit">
+              Referências válidas permitem auditoria, mas não comprovam a
+              correção da hipótese. O modo de análise é sempre identificado.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="delivery">
+        <div>
+          <p class="eyebrow">PESQUISA APLICADA · DSR</p>
+          <h2>Construir. Avaliar. Melhorar.</h2>
+          <p>
+            Um artefato para demonstrar a preservação da intenção de compra e a
+            investigação de incidentes com evidências.
+          </p>
+        </div>
+        <div>
+          <article>
+            <span>PBL 8</span>
+            <h3>Melhorias do artefato</h3>
+            <p>
+              Carrinho persistente, suspensão da finalização, recuperação
+              verificada e aviso interno com consentimento.
+            </p>
+          </article>
+          <article>
+            <span>PJBL 3</span>
+            <h3>Construção e demonstração</h3>
+            <p>
+              Cenários executáveis, respostas HTTP, avaliação preliminar e
+              relatório exportável. A avaliação mede esta demonstração, não
+              acurácia geral de IA.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a class="brand" href="#">nexo.</a>
+      <p>Protótipo acadêmico · Nenhuma transação financeira real.</p>
+      <a href="docker.html">Experimento Docker original ↗</a>
+    </footer>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <script type="module">
+      /* APPLICATION */
+    </script>
+  </body>
+</html>

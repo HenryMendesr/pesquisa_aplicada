@@ -5,9 +5,33 @@ Protótipo acadêmico para apoiar um operador na investigação de falhas no flu
 estado atual no etcd e histórico no PostgreSQL, constrói um contexto delimitado
 e registra diagnósticos com evidências rastreáveis.
 
-A interface desta versão é uma CLI. O diagnóstico usa LangChain com uma API no
-formato Chat Completions e exige modelo, URL e chave. Coleta e consultas ao
-histórico funcionam independentemente dessas credenciais.
+O núcleo de diagnóstico usa uma CLI e LangChain com API compatível com Chat
+Completions. A versão 2 acrescenta a **Nexo**, loja experimental executável na
+Vercel, com carrinho persistente local, pagamento sandbox, circuito de proteção,
+aviso interno de recuperação e avaliação pela interface.
+
+## Demonstração visual — versão 2
+
+Sem VPS ou credenciais para o fluxo de compra de teste:
+
+```bash
+cd presentation
+node build.mjs
+node --test tests/*.test.mjs
+node dev.mjs
+```
+
+Na Vercel: **Root Directory `presentation`**, Framework **Other**, build
+`node build.mjs`, saída `public`, instalação vazia. A página e a API ficam na
+mesma origem. [Guia de publicação](docs/vercel.md).
+
+Os pagamentos e falhas são controlados; nenhum valor é cobrado. Carrinho,
+comprovantes, avisos e evidências são locais ao navegador. A análise padrão é
+**por regras, sem IA**; a integração opcional de LLM exige configuração no
+servidor. O painel Docker anterior permanece em `presentation/docker.html`.
+
+- [PBL 8 — melhorias e avaliação](docs/pbl8-melhorias.md).
+- [PJBL 3 — construção, demonstração e evidências](docs/pjbl3-artefato.md).
 
 ## Entregas acadêmicas
 
