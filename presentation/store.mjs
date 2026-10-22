@@ -172,6 +172,57 @@ function render() {
     s.controlMode === "agent"
       ? agentPayment
       : s.evidence.findLast((event) => event.status != null);
+  const lastAction = s.evidence.findLast((e) =>
+    ["circuit_opened", "circuit_closed"].includes(e.event),
+  );
+  let incident = [
+    "Escolha um cenário",
+    "O resultado da execução aparece aqui.",
+    "Aguardando teste",
+  ];
+  if (lastHttp)
+    incident = [
+      "Pagamento respondeu",
+      `Última resposta: HTTP ${lastHttp.status}.`,
+      "Resposta recebida",
+    ];
+  if (s.scenario === "slow" && !unknown)
+    incident = [
+      "Resposta perdida selecionada",
+      "Execute uma compra para provocar o timeout e verificar a consulta da tentativa original.",
+      "Pronto para testar",
+    ];
+  if (s.scenario === "declined" && !blocked)
+    incident = [
+      "Recusa de pagamento",
+      "A recusa é uma resposta de negócio. Quando a compra retorna HTTP 402, o carrinho é mantido e o serviço continua liberado.",
+      "Sem isolamento técnico",
+    ];
+  if (blocked)
+    incident = [
+      "Pagamento isolado",
+      "O checkout foi suspenso após a falha. O catálogo continua disponível e os itens permanecem no carrinho.",
+      "Compra suspensa",
+    ];
+  if (unknown)
+    incident = [
+      "Pagamento sem confirmação",
+      "A resposta da compra se perdeu. Uma nova tentativa fica bloqueada até consultar o resultado pelo mesmo identificador, evitando repetir a compra.",
+      "Consulta necessária",
+    ];
+  if (
+    !blocked &&
+    !unknown &&
+    s.scenario === "normal" &&
+    lastAction?.event === "circuit_closed"
+  )
+    incident = [
+      "Conexão restabelecida no teste",
+      "O cenário de falha foi removido. Duas verificações confirmaram o pagamento disponível antes de liberar o checkout; o carrinho foi preservado.",
+      "Checkout liberado",
+    ];
+  $("#incident-explanation").innerHTML =
+    `<div><span class="incident-badge">${esc(incident[2])}</span><h3>${esc(incident[0])}</h3><p>${esc(incident[1])}</p></div><div class="incident-proof"><b>${lastHttp ? `HTTP ${esc(lastHttp.status)}` : "—"}</b><span>${s.controlMode === "agent" ? "Controle: agente IA" : "Controle: regras automáticas"}</span></div>`;
   $("#metric-http").textContent = lastHttp
     ? `HTTP ${lastHttp.status}`
     : "Não verificada";
@@ -515,17 +566,73 @@ export async function evaluate(api = (body) => call(body, false)) {
   const check = (value, message) => {
     if (!value) throw new Error(message);
   };
+  const explanations = [
+    [
+      "Compra aprovada",
+      "Nenhuma falha foi injetada.",
+      "A API confirmou o total e a compra esvaziou o carrinho.",
+    ],
+    [
+      "Serviço de pagamento indisponível",
+      "A compra recebeu HTTP 503.",
+      "A tentativa falhou sem remover o produto do carrinho.",
+    ],
+    [
+      "Falha contida no checkout",
+      "O pagamento ficou indisponível e o circuito abriu.",
+      "A próxima compra foi bloqueada antes de uma nova chamada ao pagamento.",
+    ],
+    [
+      "Carrinho restaurado",
+      "O estado foi salvo e carregado novamente.",
+      "O teclado e sua quantidade permaneceram no carrinho.",
+    ],
+    [
+      "Pagamento recuperado",
+      "O teste retirou a falha de pagamento.",
+      "Duas sondagens confirmaram disponibilidade. O circuito fechou, o carrinho foi mantido e um único aviso foi criado.",
+    ],
+    [
+      "Recusa sem derrubar o serviço",
+      "A compra recebeu HTTP 402.",
+      "O circuito permaneceu fechado e o produto continuou no carrinho.",
+    ],
+    [
+      "Resposta perdida e conciliada",
+      "A compra ficou sem confirmação e uma segunda tentativa foi bloqueada.",
+      "A consulta usou o mesmo identificador e confirmou uma única compra.",
+    ],
+    [
+      "Comprovante consistente",
+      "Duas chamadas usaram a mesma chave de tentativa.",
+      "As duas respostas HTTP 200 devolveram o mesmo comprovante no sandbox.",
+    ],
+  ];
   async function test(name, fn) {
     const start = performance.now();
+    const offset = evidence.length;
+    const [title, problem, outcome] = explanations[results.length];
     try {
       await fn();
       results.push({
         name,
+        title,
+        problem,
+        outcome,
+        observations: evidence.slice(offset),
         passed: true,
         durationMs: Math.round(performance.now() - start),
       });
     } catch (error) {
-      results.push({ name, passed: false, error: error.message });
+      results.push({
+        name,
+        title,
+        problem,
+        outcome: "A verificação falhou. A recuperação não foi comprovada.",
+        observations: evidence.slice(offset),
+        passed: false,
+        error: error.message,
+      });
     }
   }
   const make = () => new Store({ call: api });
@@ -670,7 +777,7 @@ $("#run-tests").addEventListener("click", () =>
     testReport = await evaluate();
     const passed = testReport.results.filter((r) => r.passed).length;
     $("#test-results").innerHTML =
-      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}</div>`;
+      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3><div class="test-cards">${testReport.results.map((r, i) => `<article class="test-card ${r.passed ? "" : "fail"}"><header><span>TESTE ${String(i + 1).padStart(2, "0")}</span><b>${r.passed ? "✓ Aprovado" : "✕ Falhou"}</b></header><h4>${esc(r.title)}</h4><dl><dt>O que aconteceu</dt><dd>${esc(r.problem)}</dd><dt>${r.passed ? "Resultado confirmado" : "Resultado"}</dt><dd>${esc(r.outcome)}</dd></dl>${r.error ? `<p class="test-error">${esc(r.error)}</p>` : ""}<footer>${r.durationMs ?? "—"} ms${r.observations?.length ? ` · ${r.observations.length} eventos registrados` : ""}</footer>${r.observations?.length ? `<details><summary>Ver evidências</summary>${r.observations.map((e) => `<div class="test-observation"><code>${esc(e.event)}${e.status ? ` · HTTP ${esc(e.status)}` : ""}</code><p>${esc(e.details || "")}</p></div>`).join("")}</details>` : ""}</article>`).join("")}</div></div>`;
     toast("Avaliação concluída. Confira os resultados observados.");
   }),
 );
