@@ -34,7 +34,7 @@
       <section class="dashboard-intro">
         <div>
           <p class="eyebrow">PESQUISA APLICADA · LABORATÓRIO DE RESILIÊNCIA</p>
-          <h1>Provoque a falha.<br /><em>Verifique o isolamento.</em></h1>
+          <h1>Testes de resiliência.<br /><em>Falhas e recuperação.</em></h1>
           <p>
             Execute os cenários, observe as respostas HTTP e confira se a falha
             no pagamento fica contida, preservando catálogo e carrinho.
@@ -81,7 +81,7 @@
         <div class="lab-head">
           <div>
             <p class="eyebrow">01 / EXECUÇÃO CONTROLADA</p>
-            <h2>Cenários e resultados dos testes.</h2>
+            <h2>Cenários de teste</h2>
             <p>
               Execute a avaliação completa ou selecione um cenário para
               investigar o comportamento da API.
@@ -114,10 +114,7 @@
                 ▷ Executar os 8 testes
               </button>
             </div>
-            <p class="lab-note">
-              O cenário afeta apenas esta sessão. A falha é injetada no sandbox
-              da API; não representa uma queda física de infraestrutura.
-            </p>
+            <p class="lab-note">O cenário é aplicado somente a esta sessão.</p>
           </div>
           <div class="status-panel">
             <div class="scenario-label">02 / ESTADO DA OPERAÇÃO</div>
@@ -160,7 +157,7 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">02 / CONTENÇÃO DO IMPACTO</p>
-            <h2>A falha fica no pagamento.</h2>
+            <h2>Isolamento do pagamento</h2>
           </div>
           <a class="text-btn" href="#application">Ver efeito na aplicação ↗</a>
         </div>
@@ -196,15 +193,14 @@
           finalização, sem interromper o catálogo e o carrinho.
         </div>
         <p class="scope-note">
-          Este mapa descreve os componentes do sandbox. O teste demonstra
-          contenção na orquestração, não isolamento de processos ou containers.
+          Catálogo e carrinho no navegador. Pagamento em uma função HTTP.
         </p>
       </section>
       <section class="evidence-section" id="evidence">
         <div class="section-heading">
           <div>
             <p class="eyebrow">03 / INSPEÇÃO E AUDITORIA</p>
-            <h2>Respostas HTTP e evidências.</h2>
+            <h2>Respostas e eventos</h2>
           </div>
           <button id="export" class="text-btn">
             ↓ Exportar relatório JSON
@@ -224,9 +220,7 @@
               <span id="diagnosis-mode" class="mode-tag">Por regras</span>
             </div>
             <p id="diagnosis-summary">
-              Execute um cenário para reunir evidências. A análise por regras
-              funciona sem credenciais; uma LLM real pode ser configurada
-              separadamente.
+              Selecione um cenário para analisar os eventos.
             </p>
             <div id="diagnosis-refs"></div>
             <button id="analyze" class="secondary">
@@ -247,8 +241,7 @@
               </p>
             </details>
             <p class="diagnosis-limit">
-              Referências válidas permitem auditoria, mas não comprovam a
-              correção da hipótese. O modo de análise é sempre identificado.
+              As referências apontam para os eventos usados na análise.
             </p>
           </div>
         </div>
@@ -257,11 +250,8 @@
         <summary>
           <div>
             <span class="eyebrow">APLICAÇÃO DE APOIO</span>
-            <h2>Confira o impacto na compra</h2>
-            <p>
-              Abra para adicionar produtos e comprovar que o carrinho continua
-              funcionando durante a falha.
-            </p>
+            <h2>Compra e carrinho</h2>
+            <p>Adicione itens e confira o carrinho durante a falha.</p>
           </div>
           <span class="expand-label">Abrir demonstração +</span>
         </summary>
@@ -269,40 +259,29 @@
           <section class="collection" id="products">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">APLICAÇÃO AUXILIAR PARA O EXPERIMENTO</p>
-                <h2>Produtos de teste</h2>
+                <p class="eyebrow">CATÁLOGO</p>
+                <h2>Produtos</h2>
               </div>
-              <span class="count-label">3 entradas para o carrinho</span>
+              <span class="count-label">3 produtos</span>
             </div>
             <div id="product-list" class="product-grid"></div>
-            <div class="scope-note">
-              <span>ⓘ</span>
-              <p>
-                Loja acadêmica: os produtos e pagamentos são de teste. Nenhum
-                valor é cobrado. Seu carrinho fica salvo somente neste
-                navegador.
-              </p>
-            </div>
           </section>
           <aside class="cart" aria-labelledby="cart-title">
             <div class="cart-heading">
-              <h2 id="cart-title">
-                Seu carrinho <span id="cart-count">0</span>
-              </h2>
+              <h2 id="cart-title">Carrinho <span id="cart-count">0</span></h2>
               <span>↗</span>
             </div>
             <div id="cart-items"></div>
             <div id="payment-notice" class="payment-notice" hidden></div>
             <div class="cart-total">
-              <span>Total de teste</span
-              ><strong id="cart-total">R$ 0,00</strong>
+              <span>Total</span><strong id="cart-total">R$ 0,00</strong>
             </div>
             <button class="primary checkout" id="checkout">
-              Finalizar compra de teste <span>→</span></button
+              Finalizar compra <span>→</span></button
             ><button id="reconcile" class="secondary" hidden>
               Consultar pagamento pendente
             </button>
-            <p class="cart-foot">Sem dados de cartão. Sem cobrança real.</p>
+
             <div id="order-result" role="status"></div>
           </aside>
         </div>
@@ -344,7 +323,7 @@
     </main>
     <footer>
       <a class="brand" href="#">nexo.</a>
-      <p>Protótipo acadêmico · Nenhuma transação financeira real.</p>
+      <p>Ambiente de testes · Pagamentos simulados</p>
       <a href="docker.html">Experimento Docker original ↗</a>
     </footer>
     <div id="toast" class="toast" role="status" hidden></div>

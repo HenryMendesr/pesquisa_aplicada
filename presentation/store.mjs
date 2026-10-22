@@ -33,7 +33,7 @@ const icons = {
 };
 $("#product-list").innerHTML = PRODUCTS.map(
   (p) =>
-    `<article class="product"><div class="product-art ${p.color}"><svg viewBox="0 0 120 120" aria-hidden="true">${icons[p.icon]}</svg></div><span class="product-category">${p.category}</span><h3>${p.name}</h3><p class="product-description">${p.description}</p><div class="product-bottom"><strong>${money(p.price)}</strong><button class="add-btn" data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho">+</button></div></article>`,
+    `<article class="product"><div class="product-art ${p.color}"><svg viewBox="0 0 120 120" aria-hidden="true">${icons[p.icon]}</svg></div><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-bottom"><strong>${money(p.price)}</strong><button class="add-btn" data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho">+</button></div></article>`,
 ).join("");
 function toast(message) {
   clearTimeout(timer);
@@ -91,13 +91,13 @@ function render() {
           return `<div class="cart-item"><div><h4>${p.name}</h4><small>${item.quantity} un. × ${money(p.price)}</small></div><button class="remove" data-remove="${p.id}" aria-label="Remover ${p.name}">×</button></div>`;
         })
         .join("")
-    : '<div class="empty-cart"><span>⌑</span>Seu próximo favorito começa aqui.<br>Adicione um produto à coleção.</div>';
+    : '<div class="empty-cart"><span>⌑</span>Carrinho vazio.</div>';
   $("#checkout").disabled = busy || !s.cart.length || blocked || unknown;
   $("#checkout").innerHTML = unknown
     ? "Pagamento pendente de consulta"
     : blocked
       ? "Pagamento temporariamente suspenso"
-      : "Finalizar compra de teste <span>→</span>";
+      : "Finalizar compra <span>→</span>";
   $("#reconcile").hidden = !unknown;
   $("#reconcile").disabled = busy;
   $("#payment-notice").hidden = !blocked && !unknown;
@@ -129,11 +129,11 @@ function render() {
     .slice(-3)
     .map(
       (n) =>
-        `<div class="notification"><span>✓</span><div><b>Você já pode continuar.</b> ${esc(n.text)}<small>Aviso interno solicitado · ${time(n.at)} · nenhuma mensagem externa enviada</small></div></div>`,
+        `<div class="notification"><span>✓</span><div>${esc(n.text)}<small>Aviso de recuperação · ${time(n.at)}</small></div></div>`,
     )
     .join("");
   $("#order-result").innerHTML = s.orders.length
-    ? `<div class="order-success"><b>Compra de teste confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)} · nenhum valor foi cobrado</div>`
+    ? `<div class="order-success"><b>Compra confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)}</div>`
     : "";
   $("#event-count").textContent = `${s.evidence.length} eventos`;
   $("#metric-evidence").textContent = `${s.evidence.length} eventos`;
@@ -231,7 +231,7 @@ $("#product-list").addEventListener("click", (e) => {
       store.add(b.dataset.add);
       toast(
         store.state.breaker === "closed"
-          ? "Item adicionado. Seu carrinho está salvo neste navegador."
+          ? "Item adicionado ao carrinho."
           : "Item adicionado. O pagamento está indisponível, mas seu carrinho está salvo.",
       );
     });
@@ -252,7 +252,7 @@ $("#payment-notice").addEventListener("click", (e) => {
 $("#checkout").addEventListener("click", () =>
   action(async () => {
     await store.checkout();
-    toast("Compra de teste concluída. Nenhum valor foi cobrado.");
+    toast("Compra confirmada.");
   }),
 );
 $("#reconcile").addEventListener("click", () =>
@@ -475,7 +475,7 @@ $("#run-tests").addEventListener("click", () =>
     testReport = await evaluate();
     const passed = testReport.results.filter((r) => r.passed).length;
     $("#test-results").innerHTML =
-      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}<p>Amostra desta execução, usando cenários controlados. Não é teste de carga nem avaliação de acurácia da IA. Resultados disponíveis na exportação.</p></div>`;
+      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}<p>Resultados desta execução. Baixe o relatório JSON para consultar as evidências.</p></div>`;
     toast("Avaliação concluída. Confira os resultados observados.");
   }),
 );

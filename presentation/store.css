@@ -1507,3 +1507,71 @@ a:hover {
     padding: 12px 16px;
   }
 }
+
+.application-demo .product {
+  padding: 14px;
+  border: 1px solid #e1e7dc;
+  border-radius: 12px;
+  background: #fff;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.application-demo .product:hover {
+  border-color: #b4c6a5;
+  box-shadow: 0 5px 18px #243f2e08;
+}
+.application-demo .product-art {
+  margin-bottom: 13px;
+  border-radius: 8px;
+}
+.application-demo .product-category {
+  font-size: 9px;
+  letter-spacing: 0.7px;
+}
+.application-demo .product h3 {
+  margin: 5px 0 17px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.application-demo .product-bottom strong {
+  font-size: 15px;
+  letter-spacing: -0.4px;
+}
+.application-demo .add-btn {
+  background: #eef3e8;
+  border: 0;
+  color: #365337;
+}
+.application-demo .add-btn:hover {
+  background: #dcebc9;
+}
+.application-demo .cart {
+  border-radius: 12px;
+  box-shadow: 0 3px 12px #243f2e04;
+}
+.application-demo > summary p {
+  max-width: 480px;
+}
+@media (max-width: 430px) {
+  .application-demo .product {
+    grid-template-columns: 85px 1fr;
+    padding: 12px;
+  }
+  .application-demo .product-art {
+    grid-row: span 3;
+    height: 100px;
+    margin: 0;
+  }
+  .application-demo .product-art svg {
+    width: 72px;
+    height: 72px;
+  }
+  .application-demo .product h3 {
+    font-size: 15px;
+    margin: 2px 0 10px;
+  }
+  .application-demo .product-category {
+    align-self: end;
+  }
+}

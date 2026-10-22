@@ -1523,6 +1523,74 @@ a:hover {
   }
 }
 
+.application-demo .product {
+  padding: 14px;
+  border: 1px solid #e1e7dc;
+  border-radius: 12px;
+  background: #fff;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+.application-demo .product:hover {
+  border-color: #b4c6a5;
+  box-shadow: 0 5px 18px #243f2e08;
+}
+.application-demo .product-art {
+  margin-bottom: 13px;
+  border-radius: 8px;
+}
+.application-demo .product-category {
+  font-size: 9px;
+  letter-spacing: 0.7px;
+}
+.application-demo .product h3 {
+  margin: 5px 0 17px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.application-demo .product-bottom strong {
+  font-size: 15px;
+  letter-spacing: -0.4px;
+}
+.application-demo .add-btn {
+  background: #eef3e8;
+  border: 0;
+  color: #365337;
+}
+.application-demo .add-btn:hover {
+  background: #dcebc9;
+}
+.application-demo .cart {
+  border-radius: 12px;
+  box-shadow: 0 3px 12px #243f2e04;
+}
+.application-demo > summary p {
+  max-width: 480px;
+}
+@media (max-width: 430px) {
+  .application-demo .product {
+    grid-template-columns: 85px 1fr;
+    padding: 12px;
+  }
+  .application-demo .product-art {
+    grid-row: span 3;
+    height: 100px;
+    margin: 0;
+  }
+  .application-demo .product-art svg {
+    width: 72px;
+    height: 72px;
+  }
+  .application-demo .product h3 {
+    font-size: 15px;
+    margin: 2px 0 10px;
+  }
+  .application-demo .product-category {
+    align-self: end;
+  }
+}
+
     </style>
   </head>
   <body>
@@ -1543,7 +1611,7 @@ a:hover {
       <section class="dashboard-intro">
         <div>
           <p class="eyebrow">PESQUISA APLICADA · LABORATÓRIO DE RESILIÊNCIA</p>
-          <h1>Provoque a falha.<br /><em>Verifique o isolamento.</em></h1>
+          <h1>Testes de resiliência.<br /><em>Falhas e recuperação.</em></h1>
           <p>
             Execute os cenários, observe as respostas HTTP e confira se a falha
             no pagamento fica contida, preservando catálogo e carrinho.
@@ -1590,7 +1658,7 @@ a:hover {
         <div class="lab-head">
           <div>
             <p class="eyebrow">01 / EXECUÇÃO CONTROLADA</p>
-            <h2>Cenários e resultados dos testes.</h2>
+            <h2>Cenários de teste</h2>
             <p>
               Execute a avaliação completa ou selecione um cenário para
               investigar o comportamento da API.
@@ -1623,10 +1691,7 @@ a:hover {
                 ▷ Executar os 8 testes
               </button>
             </div>
-            <p class="lab-note">
-              O cenário afeta apenas esta sessão. A falha é injetada no sandbox
-              da API; não representa uma queda física de infraestrutura.
-            </p>
+            <p class="lab-note">O cenário é aplicado somente a esta sessão.</p>
           </div>
           <div class="status-panel">
             <div class="scenario-label">02 / ESTADO DA OPERAÇÃO</div>
@@ -1669,7 +1734,7 @@ a:hover {
         <div class="section-heading">
           <div>
             <p class="eyebrow">02 / CONTENÇÃO DO IMPACTO</p>
-            <h2>A falha fica no pagamento.</h2>
+            <h2>Isolamento do pagamento</h2>
           </div>
           <a class="text-btn" href="#application">Ver efeito na aplicação ↗</a>
         </div>
@@ -1705,15 +1770,14 @@ a:hover {
           finalização, sem interromper o catálogo e o carrinho.
         </div>
         <p class="scope-note">
-          Este mapa descreve os componentes do sandbox. O teste demonstra
-          contenção na orquestração, não isolamento de processos ou containers.
+          Catálogo e carrinho no navegador. Pagamento em uma função HTTP.
         </p>
       </section>
       <section class="evidence-section" id="evidence">
         <div class="section-heading">
           <div>
             <p class="eyebrow">03 / INSPEÇÃO E AUDITORIA</p>
-            <h2>Respostas HTTP e evidências.</h2>
+            <h2>Respostas e eventos</h2>
           </div>
           <button id="export" class="text-btn">
             ↓ Exportar relatório JSON
@@ -1733,9 +1797,7 @@ a:hover {
               <span id="diagnosis-mode" class="mode-tag">Por regras</span>
             </div>
             <p id="diagnosis-summary">
-              Execute um cenário para reunir evidências. A análise por regras
-              funciona sem credenciais; uma LLM real pode ser configurada
-              separadamente.
+              Selecione um cenário para analisar os eventos.
             </p>
             <div id="diagnosis-refs"></div>
             <button id="analyze" class="secondary">
@@ -1756,8 +1818,7 @@ a:hover {
               </p>
             </details>
             <p class="diagnosis-limit">
-              Referências válidas permitem auditoria, mas não comprovam a
-              correção da hipótese. O modo de análise é sempre identificado.
+              As referências apontam para os eventos usados na análise.
             </p>
           </div>
         </div>
@@ -1766,11 +1827,8 @@ a:hover {
         <summary>
           <div>
             <span class="eyebrow">APLICAÇÃO DE APOIO</span>
-            <h2>Confira o impacto na compra</h2>
-            <p>
-              Abra para adicionar produtos e comprovar que o carrinho continua
-              funcionando durante a falha.
-            </p>
+            <h2>Compra e carrinho</h2>
+            <p>Adicione itens e confira o carrinho durante a falha.</p>
           </div>
           <span class="expand-label">Abrir demonstração +</span>
         </summary>
@@ -1778,40 +1836,29 @@ a:hover {
           <section class="collection" id="products">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">APLICAÇÃO AUXILIAR PARA O EXPERIMENTO</p>
-                <h2>Produtos de teste</h2>
+                <p class="eyebrow">CATÁLOGO</p>
+                <h2>Produtos</h2>
               </div>
-              <span class="count-label">3 entradas para o carrinho</span>
+              <span class="count-label">3 produtos</span>
             </div>
             <div id="product-list" class="product-grid"></div>
-            <div class="scope-note">
-              <span>ⓘ</span>
-              <p>
-                Loja acadêmica: os produtos e pagamentos são de teste. Nenhum
-                valor é cobrado. Seu carrinho fica salvo somente neste
-                navegador.
-              </p>
-            </div>
           </section>
           <aside class="cart" aria-labelledby="cart-title">
             <div class="cart-heading">
-              <h2 id="cart-title">
-                Seu carrinho <span id="cart-count">0</span>
-              </h2>
+              <h2 id="cart-title">Carrinho <span id="cart-count">0</span></h2>
               <span>↗</span>
             </div>
             <div id="cart-items"></div>
             <div id="payment-notice" class="payment-notice" hidden></div>
             <div class="cart-total">
-              <span>Total de teste</span
-              ><strong id="cart-total">R$ 0,00</strong>
+              <span>Total</span><strong id="cart-total">R$ 0,00</strong>
             </div>
             <button class="primary checkout" id="checkout">
-              Finalizar compra de teste <span>→</span></button
+              Finalizar compra <span>→</span></button
             ><button id="reconcile" class="secondary" hidden>
               Consultar pagamento pendente
             </button>
-            <p class="cart-foot">Sem dados de cartão. Sem cobrança real.</p>
+
             <div id="order-result" role="status"></div>
           </aside>
         </div>
@@ -1853,7 +1900,7 @@ a:hover {
     </main>
     <footer>
       <a class="brand" href="#">nexo.</a>
-      <p>Protótipo acadêmico · Nenhuma transação financeira real.</p>
+      <p>Ambiente de testes · Pagamentos simulados</p>
       <a href="docker.html">Experimento Docker original ↗</a>
     </footer>
     <div id="toast" class="toast" role="status" hidden></div>
@@ -2255,7 +2302,7 @@ const icons = {
 };
 $("#product-list").innerHTML = PRODUCTS.map(
   (p) =>
-    `<article class="product"><div class="product-art ${p.color}"><svg viewBox="0 0 120 120" aria-hidden="true">${icons[p.icon]}</svg></div><span class="product-category">${p.category}</span><h3>${p.name}</h3><p class="product-description">${p.description}</p><div class="product-bottom"><strong>${money(p.price)}</strong><button class="add-btn" data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho">+</button></div></article>`,
+    `<article class="product"><div class="product-art ${p.color}"><svg viewBox="0 0 120 120" aria-hidden="true">${icons[p.icon]}</svg></div><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-bottom"><strong>${money(p.price)}</strong><button class="add-btn" data-add="${p.id}" aria-label="Adicionar ${p.name} ao carrinho">+</button></div></article>`,
 ).join("");
 function toast(message) {
   clearTimeout(timer);
@@ -2313,13 +2360,13 @@ function render() {
           return `<div class="cart-item"><div><h4>${p.name}</h4><small>${item.quantity} un. × ${money(p.price)}</small></div><button class="remove" data-remove="${p.id}" aria-label="Remover ${p.name}">×</button></div>`;
         })
         .join("")
-    : '<div class="empty-cart"><span>⌑</span>Seu próximo favorito começa aqui.<br>Adicione um produto à coleção.</div>';
+    : '<div class="empty-cart"><span>⌑</span>Carrinho vazio.</div>';
   $("#checkout").disabled = busy || !s.cart.length || blocked || unknown;
   $("#checkout").innerHTML = unknown
     ? "Pagamento pendente de consulta"
     : blocked
       ? "Pagamento temporariamente suspenso"
-      : "Finalizar compra de teste <span>→</span>";
+      : "Finalizar compra <span>→</span>";
   $("#reconcile").hidden = !unknown;
   $("#reconcile").disabled = busy;
   $("#payment-notice").hidden = !blocked && !unknown;
@@ -2351,11 +2398,11 @@ function render() {
     .slice(-3)
     .map(
       (n) =>
-        `<div class="notification"><span>✓</span><div><b>Você já pode continuar.</b> ${esc(n.text)}<small>Aviso interno solicitado · ${time(n.at)} · nenhuma mensagem externa enviada</small></div></div>`,
+        `<div class="notification"><span>✓</span><div>${esc(n.text)}<small>Aviso de recuperação · ${time(n.at)}</small></div></div>`,
     )
     .join("");
   $("#order-result").innerHTML = s.orders.length
-    ? `<div class="order-success"><b>Compra de teste confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)} · nenhum valor foi cobrado</div>`
+    ? `<div class="order-success"><b>Compra confirmada ✓</b><br>${esc(s.orders.at(-1).receiptId)}<br>${money(s.orders.at(-1).total)}</div>`
     : "";
   $("#event-count").textContent = `${s.evidence.length} eventos`;
   $("#metric-evidence").textContent = `${s.evidence.length} eventos`;
@@ -2453,7 +2500,7 @@ $("#product-list").addEventListener("click", (e) => {
       store.add(b.dataset.add);
       toast(
         store.state.breaker === "closed"
-          ? "Item adicionado. Seu carrinho está salvo neste navegador."
+          ? "Item adicionado ao carrinho."
           : "Item adicionado. O pagamento está indisponível, mas seu carrinho está salvo.",
       );
     });
@@ -2474,7 +2521,7 @@ $("#payment-notice").addEventListener("click", (e) => {
 $("#checkout").addEventListener("click", () =>
   action(async () => {
     await store.checkout();
-    toast("Compra de teste concluída. Nenhum valor foi cobrado.");
+    toast("Compra confirmada.");
   }),
 );
 $("#reconcile").addEventListener("click", () =>
@@ -2697,7 +2744,7 @@ $("#run-tests").addEventListener("click", () =>
     testReport = await evaluate();
     const passed = testReport.results.filter((r) => r.passed).length;
     $("#test-results").innerHTML =
-      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}<p>Amostra desta execução, usando cenários controlados. Não é teste de carga nem avaliação de acurácia da IA. Resultados disponíveis na exportação.</p></div>`;
+      `<div class="test-report"><h3>${passed}/${testReport.results.length} verificações aprovadas</h3>${testReport.results.map((r) => `<div class="test-row ${r.passed ? "" : "fail"}"><span>${esc(r.name)}</span><small>${r.passed ? "✓ Aprovado" : "✕ " + esc(r.error)}</small></div>`).join("")}<p>Resultados desta execução. Baixe o relatório JSON para consultar as evidências.</p></div>`;
     toast("Avaliação concluída. Confira os resultados observados.");
   }),
 );
