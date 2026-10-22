@@ -2197,6 +2197,135 @@ a:hover {
   }
 }
 
+.scenario-execution {
+  margin-top: 28px;
+  padding: 28px;
+  background: #f3f7ed;
+  color: #243e2f;
+  border: 3px solid #86a35f;
+  border-radius: 16px;
+}
+.scenario-execution.error {
+  background: #fff1eb;
+  border-color: #cc7257;
+  color: #813a25;
+}
+.scenario-execution.pending,
+.scenario-execution.declined {
+  background: #fff7e0;
+  border-color: #c49a37;
+  color: #73520d;
+}
+.execution-result-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+.execution-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+}
+.execution-result-head h3 {
+  font-size: 30px;
+  line-height: 1.2;
+  margin: 12px 0;
+}
+.execution-result-head p {
+  font-size: 17px;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 750px;
+}
+.execution-http {
+  font-size: 30px;
+  white-space: nowrap;
+}
+.execution-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  list-style: none;
+  padding: 0;
+  margin: 26px 0;
+}
+.execution-steps li {
+  display: flex;
+  gap: 12px;
+  background: #ffffffb3;
+  border: 1px solid #00000012;
+  border-radius: 12px;
+  padding: 18px;
+}
+.execution-steps li > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.execution-steps b {
+  font-size: 16px;
+}
+.execution-steps p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+.execution-impact {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid #0002;
+}
+.execution-impact span {
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.execution-impact b {
+  font-size: 20px;
+}
+.resolve-payment {
+  display: block;
+  margin: 18px 0 0;
+  background: #eff8c8;
+  color: #203b2b;
+  border: 0;
+  border-radius: 10px;
+  padding: 18px 24px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .scenario-execution {
+    padding: 20px;
+  }
+  .execution-result-head {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .execution-result-head h3,
+  .execution-http {
+    font-size: 25px;
+  }
+  .execution-steps {
+    grid-template-columns: 1fr;
+  }
+  .execution-impact {
+    gap: 18px;
+  }
+  .execution-result-head p {
+    font-size: 16px;
+  }
+}
+
     </style>
   </head>
   <body>
@@ -2234,20 +2363,20 @@ a:hover {
           <div>
             <div class="scenario-buttons">
               <button data-scenario="normal">
-                <span>↗</span><b>Operação normal</b></button
+                <span>↗</span><b>Testar compra aprovada</b></button
               ><button data-scenario="outage">
-                <span>ϟ</span><b>Falha no pagamento</b></button
+                <span>ϟ</span><b>Testar serviço fora do ar</b></button
               ><button data-scenario="slow">
-                <span>◷</span><b>Resposta perdida</b></button
+                <span>◷</span><b>Testar resposta perdida</b></button
               ><button data-scenario="declined">
-                <span>⊘</span><b>Pagamento recusado</b>
+                <span>⊘</span><b>Testar compra recusada</b>
               </button>
             </div>
             <div class="lab-actions">
               <button id="recover" class="recover-btn">
                 ↻ Restaurar e verificar pagamento</button
               ><button id="run-tests" class="test-btn">
-                ▷ Testes funcionais (8)
+                ▷ Validação automática (8)
               </button>
             </div>
           </div>
@@ -2274,6 +2403,15 @@ a:hover {
             </div>
           </div>
         </div>
+        <div
+          id="scenario-execution"
+          class="scenario-execution"
+          hidden
+          aria-live="polite"
+        ></div>
+        <button id="resolve-payment" class="resolve-payment" hidden>
+          Consultar pagamento pendente →
+        </button>
         <div
           id="incident-explanation"
           class="incident-explanation"
@@ -2903,6 +3041,7 @@ const time = (date) =>
     second: "2-digit",
   });
 let actionController = null;
+let liveRun = null;
 let busy = false,
   diagnosis = null,
   testReport = null,
@@ -3103,6 +3242,10 @@ function render() {
     .filter((item) => item.service === "payment")
     .at(-1);
 
+  renderLiveRun();
+  $("#resolve-payment").hidden = !unknown;
+  $("#resolve-payment").disabled = busy;
+  $("#incident-explanation").hidden = Boolean(liveRun);
   $("#cart-count").textContent = s.cart.reduce((n, i) => n + i.quantity, 0);
   $("#cart-total").textContent = money(store.total());
   $("#cart-items").innerHTML = s.cart.length
@@ -3414,6 +3557,13 @@ async function action(fn) {
       $("#test-results").innerHTML =
         '<div class="test-report"><h3>Execução interrompida</h3></div>';
     }
+    if (liveRun?.status === "running") {
+      liveRun.status = "interrupted";
+      liveRun.title = "Execução interrompida";
+      liveRun.description = message;
+      liveRun.kind = "error";
+      liveRun.evidence = collectRunEvidence();
+    }
     $("#execution-error").textContent = message;
     $("#execution-error").hidden = false;
     toast(message);
@@ -3454,50 +3604,282 @@ $("#payment-notice").addEventListener("click", (e) => {
 });
 $("#checkout").addEventListener("click", () =>
   action(async () => {
+    liveRun = null;
     await store.checkout();
     toast("Compra confirmada.");
   }),
 );
-$("#reconcile").addEventListener("click", () =>
+$("#reconcile").addEventListener("click", () => action(resolvePayment));
+const scenarioNames = {
+  normal: "Compra aprovada",
+  outage: "Serviço fora do ar",
+  slow: "Resposta perdida",
+  declined: "Compra recusada",
+  recovery: "Recuperação do pagamento",
+};
+function collectRunEvidence() {
+  return store.state.evidence.filter(
+    (e) => !liveRun.previousIds.includes(e.id),
+  );
+}
+function startRun(scenario) {
+  liveRun = {
+    id: crypto.randomUUID(),
+    scenario,
+    startedAt: new Date().toISOString(),
+    status: "running",
+    kind: "running",
+    title: "Executando teste…",
+    description: scenarioNames[scenario],
+    steps: [],
+    previousIds: store.state.evidence.map((e) => e.id),
+    evidence: [],
+  };
+  render();
+  $("#scenario-execution").scrollIntoView({
+    behavior: "smooth",
+    block: "nearest",
+  });
+}
+function recordStep(title, detail) {
+  liveRun.steps.push({ title, detail, at: new Date().toISOString() });
+  render();
+}
+function completeRun(title, description, kind, http) {
+  Object.assign(liveRun, {
+    status: "completed",
+    title,
+    description,
+    kind,
+    http,
+    finishedAt: new Date().toISOString(),
+    evidence: collectRunEvidence(),
+  });
+  render();
+}
+function renderLiveRun() {
+  const panel = $("#scenario-execution");
+  panel.hidden = !liveRun;
+  if (!liveRun) return;
+  const cartCount = store.state.cart.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  );
+  panel.className = `scenario-execution ${liveRun.kind}`;
+  panel.innerHTML = `<div class="execution-result-head"><div><span class="execution-eyebrow">${esc(scenarioNames[liveRun.scenario])} · ${time(liveRun.startedAt)}</span><h3>${esc(liveRun.title)}</h3><p>${esc(liveRun.description)}</p></div><strong class="execution-http">${liveRun.http ? `HTTP ${esc(liveRun.http)}` : liveRun.status === "running" ? "Em execução" : liveRun.status === "interrupted" ? "Interrompido" : "Verificado"}</strong></div><ol class="execution-steps">${liveRun.steps.map((step, i) => `<li><span>${i + 1}</span><div><b>${esc(step.title)}</b><p>${esc(step.detail)}</p></div></li>`).join("")}</ol><div class="execution-impact"><span>Carrinho <b>${cartCount} ${cartCount === 1 ? "item" : "itens"}</b></span><span>Checkout <b>${store.state.attempt?.unknown ? "Aguardando consulta" : store.state.breaker === "closed" ? "Liberado" : "Suspenso"}</b></span><span>Controle <b>${store.state.controlMode === "agent" ? "Agente IA" : "Regras"}</b></span></div>`;
+}
+async function runScenario(scenario) {
+  startRun(scenario);
+  if (!store.state.cart.length) store.add("speaker");
+  const itemCount = store.state.cart.reduce(
+    (total, item) => total + item.quantity,
+    0,
+  );
+  recordStep(
+    "Carrinho preparado",
+    `${itemCount} ${itemCount === 1 ? "item" : "itens"} · ${money(store.total())}`,
+  );
+  if (store.state.controlMode === "agent") {
+    stage("Aplicando cenário…");
+    store.injectExperiment(
+      await agentRequest("/api/experiment", { operation: "inject", scenario }),
+      scenario,
+    );
+    recordStep("Condição de teste aplicada", "Aguardando a decisão da IA.");
+    await executeAgent();
+    const run = store.state.agentRuns.at(-1).run;
+    const observed = run.observations
+      .filter((e) => e.service === "payment")
+      .at(-1);
+    recordStep("IA concluiu a investigação", run.diagnosis.summary);
+    if (store.state.breaker !== "closed") {
+      recordStep(
+        "Checkout isolado",
+        "Ação do agente validada pela política. O carrinho continua salvo.",
+      );
+      completeRun(
+        "Pagamento isolado pela IA",
+        "A compra ficou suspensa. O catálogo e o carrinho continuam disponíveis.",
+        "error",
+        observed?.status,
+      );
+      return;
+    }
+  } else {
+    stage("Verificando o cenário…");
+    const ready = await store.scenario(scenario);
+    if (!ready)
+      throw new Error(
+        "A recuperação não foi confirmada. O checkout continua suspenso.",
+      );
+    recordStep("Condição de teste aplicada", scenarioNames[scenario]);
+  }
+  if (store.state.breaker !== "closed") {
+    try {
+      await store.checkout();
+    } catch (error) {
+      if (!collectRunEvidence().some((e) => e.event === "checkout_blocked"))
+        throw error;
+    }
+    const failure = collectRunEvidence().findLast((e) => e.status >= 500);
+    recordStep(
+      "Falha detectada",
+      failure
+        ? `A verificação recebeu HTTP ${failure.status}.`
+        : "O checkout permanece isolado.",
+    );
+    recordStep(
+      "Nova compra bloqueada",
+      "Nenhuma nova chamada de pagamento foi enviada. Os itens continuam no carrinho.",
+    );
+    completeRun(
+      "Serviço fora do ar · compra suspensa",
+      "A proteção conteve a falha no pagamento. Use Restaurar e verificar pagamento para testar a recuperação.",
+      "error",
+      failure?.status,
+    );
+  } else {
+    stage("Enviando compra de teste…");
+    let checkoutError;
+    try {
+      await store.checkout();
+    } catch (error) {
+      checkoutError = error;
+    }
+    const response = collectRunEvidence().findLast(
+      (e) => e.event === "payment_pay",
+    );
+    if (store.state.attempt?.unknown) {
+      recordStep(
+        "Resposta da compra não confirmada",
+        response
+          ? `A API retornou HTTP ${response.status}.`
+          : "A chamada não retornou uma confirmação.",
+      );
+      recordStep(
+        "Repetição bloqueada",
+        "O carrinho foi preservado. Consulte a mesma tentativa no botão abaixo.",
+      );
+      completeRun(
+        "Pagamento sem confirmação",
+        "Não é possível afirmar se a compra foi aprovada. Consulte o resultado antes de tentar novamente.",
+        "pending",
+        response?.status,
+      );
+    } else if (response?.status === 402) {
+      recordStep("Pagamento recusado", "A compra retornou HTTP 402.");
+      recordStep(
+        "Carrinho preservado",
+        "O serviço continua ativo. A recusa não abriu o circuito.",
+      );
+      completeRun(
+        "Compra recusada · serviço disponível",
+        "A compra não foi concluída. Os produtos continuam no carrinho e o checkout permanece liberado.",
+        "declined",
+        402,
+      );
+    } else if (!checkoutError && response?.status === 200) {
+      recordStep(
+        "Pagamento aprovado",
+        "A compra retornou HTTP 200 e gerou um comprovante.",
+      );
+      recordStep(
+        "Pedido concluído",
+        "O carrinho foi esvaziado após a confirmação.",
+      );
+      completeRun(
+        "Compra aprovada",
+        "O pedido foi concluído. Veja o comprovante em Compra e carrinho.",
+        "success",
+        200,
+      );
+    } else
+      throw (
+        checkoutError || new Error("A API retornou um resultado inesperado.")
+      );
+  }
+  if (store.state.controlMode !== "agent")
+    diagnosis = rules(store.state.evidence);
+}
+document
+  .querySelectorAll("[data-scenario]")
+  .forEach((b) =>
+    b.addEventListener("click", () =>
+      action(() => runScenario(b.dataset.scenario)),
+    ),
+  );
+$("#recover").addEventListener("click", () =>
   action(async () => {
-    await store.reconcile();
-    toast(
-      "Resultado consultado: pagamento de teste confirmado, sem criar outra tentativa.",
+    startRun("recovery");
+    recordStep(
+      "Restauração solicitada",
+      "Retirando a condição de falha do teste.",
+    );
+    if (store.state.controlMode === "agent") {
+      store.injectExperiment(
+        await agentRequest("/api/experiment", {
+          operation: "inject",
+          scenario: "normal",
+        }),
+        "normal",
+      );
+      await executeAgent();
+      recordStep(
+        "Análise da IA concluída",
+        store.state.agentRuns.at(-1).run.diagnosis.summary,
+      );
+    } else {
+      const recovered = await store.scenario("normal");
+      if (!recovered)
+        throw new Error("A API ainda não confirmou a recuperação.");
+      diagnosis = rules(store.state.evidence);
+    }
+    if (store.state.breaker !== "closed")
+      throw new Error(
+        "O pagamento continua isolado. A recuperação não foi autorizada.",
+      );
+    const probes = collectRunEvidence().filter(
+      (e) => e.event === "payment_probe" && e.status === 200,
+    );
+    recordStep(
+      "Disponibilidade confirmada",
+      probes.length >= 2
+        ? "Duas verificações responderam HTTP 200."
+        : "Verificação concluída; checkout liberado.",
+    );
+    recordStep(
+      "Compra liberada",
+      "Os itens continuam no carrinho. Você já pode retomar a compra.",
+    );
+    completeRun(
+      "Pagamento recuperado",
+      "A falha foi retirada e a disponibilidade foi verificada antes de liberar o checkout.",
+      "success",
+      200,
     );
   }),
 );
-document.querySelectorAll("[data-scenario]").forEach((b) =>
-  b.addEventListener("click", () =>
-    action(async () => {
-      if (store.state.controlMode === "agent") {
-        const data = await agentRequest("/api/experiment", {
-          operation: "inject",
-          scenario: b.dataset.scenario,
-        });
-        store.injectExperiment(data, b.dataset.scenario);
-        await executeAgent();
-      } else {
-        await store.scenario(b.dataset.scenario);
-        diagnosis = rules(store.state.evidence);
-      }
-    }),
-  ),
-);
-$("#recover").addEventListener("click", () =>
-  action(async () => {
-    if (store.state.controlMode === "agent") {
-      const data = await agentRequest("/api/experiment", {
-        operation: "inject",
-        scenario: "normal",
-      });
-      store.injectExperiment(data, "normal");
-      await executeAgent();
-    } else {
-      if (await store.scenario("normal")) toast("Pagamento restaurado.");
-      diagnosis = rules(store.state.evidence);
-    }
-  }),
-);
+async function resolvePayment() {
+  startRun("slow");
+  const attemptId = store.state.attempt?.id;
+  recordStep(
+    "Consulta da tentativa original",
+    "O identificador do pagamento foi mantido.",
+  );
+  await store.reconcile();
+  recordStep(
+    "Compra confirmada",
+    "A consulta retornou HTTP 200. Não foi criada outra tentativa de pagamento.",
+  );
+  completeRun(
+    "Pagamento localizado · compra aprovada",
+    "A consulta confirmou o pedido e o carrinho foi esvaziado. Restaure o pagamento para liberar novas compras.",
+    "success",
+    200,
+  );
+  liveRun.attemptId = attemptId;
+}
+$("#resolve-payment").addEventListener("click", () => action(resolvePayment));
 async function agentRequest(path, body) {
   const token = $("#llm-token").value.trim();
   if (!token)
@@ -3940,6 +4322,7 @@ $("#export").addEventListener("click", () => {
     },
     diagnosis,
     evaluation: testReport,
+    scenarioExecution: liveRun ? { ...liveRun, previousIds: undefined } : null,
   };
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }),

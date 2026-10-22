@@ -78,3 +78,16 @@ Docker, HTTPS, `PRESENTATION_API_TOKEN` e `PRESENTATION_ALLOWED_ORIGINS` com a
 origem exata autorizada. Seu controlador é `python presentation/app.py` na raiz
 do repositório; é separado das funções serverless. A chave da LLM nunca deve
 ser gravada no HTML. A página Nexo não precisa desse backend externo.
+
+## Executar cenários pela interface
+
+Os quatro botões executam o cenário no carrinho da demonstração. Quando ele está
+vazio, a interface adiciona uma Caixa Pocket de teste. Aprovação conclui o pedido
+e esvazia o carrinho; recusa mantém os itens; indisponibilidade bloqueia uma nova
+compra; resposta perdida exige consultar a tentativa pelo botão do painel.
+Cada execução mostra etapas, resposta HTTP e efeito no checkout.
+
+**Restaurar e verificar pagamento** retira a falha e verifica a disponibilidade.
+No modo agente, a liberação depende da proposta da LLM e da política.
+**Validação automática (8)** executa verificações separadas do carrinho visível.
+A última execução interativa e suas evidências também entram no JSON exportado.

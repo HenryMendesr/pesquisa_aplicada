@@ -51,20 +51,20 @@
           <div>
             <div class="scenario-buttons">
               <button data-scenario="normal">
-                <span>↗</span><b>Operação normal</b></button
+                <span>↗</span><b>Testar compra aprovada</b></button
               ><button data-scenario="outage">
-                <span>ϟ</span><b>Falha no pagamento</b></button
+                <span>ϟ</span><b>Testar serviço fora do ar</b></button
               ><button data-scenario="slow">
-                <span>◷</span><b>Resposta perdida</b></button
+                <span>◷</span><b>Testar resposta perdida</b></button
               ><button data-scenario="declined">
-                <span>⊘</span><b>Pagamento recusado</b>
+                <span>⊘</span><b>Testar compra recusada</b>
               </button>
             </div>
             <div class="lab-actions">
               <button id="recover" class="recover-btn">
                 ↻ Restaurar e verificar pagamento</button
               ><button id="run-tests" class="test-btn">
-                ▷ Testes funcionais (8)
+                ▷ Validação automática (8)
               </button>
             </div>
           </div>
@@ -91,6 +91,15 @@
             </div>
           </div>
         </div>
+        <div
+          id="scenario-execution"
+          class="scenario-execution"
+          hidden
+          aria-live="polite"
+        ></div>
+        <button id="resolve-payment" class="resolve-payment" hidden>
+          Consultar pagamento pendente →
+        </button>
         <div
           id="incident-explanation"
           class="incident-explanation"

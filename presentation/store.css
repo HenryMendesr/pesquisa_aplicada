@@ -2181,3 +2181,132 @@ a:hover {
     font-size: 14px;
   }
 }
+
+.scenario-execution {
+  margin-top: 28px;
+  padding: 28px;
+  background: #f3f7ed;
+  color: #243e2f;
+  border: 3px solid #86a35f;
+  border-radius: 16px;
+}
+.scenario-execution.error {
+  background: #fff1eb;
+  border-color: #cc7257;
+  color: #813a25;
+}
+.scenario-execution.pending,
+.scenario-execution.declined {
+  background: #fff7e0;
+  border-color: #c49a37;
+  color: #73520d;
+}
+.execution-result-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+.execution-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+}
+.execution-result-head h3 {
+  font-size: 30px;
+  line-height: 1.2;
+  margin: 12px 0;
+}
+.execution-result-head p {
+  font-size: 17px;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 750px;
+}
+.execution-http {
+  font-size: 30px;
+  white-space: nowrap;
+}
+.execution-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  list-style: none;
+  padding: 0;
+  margin: 26px 0;
+}
+.execution-steps li {
+  display: flex;
+  gap: 12px;
+  background: #ffffffb3;
+  border: 1px solid #00000012;
+  border-radius: 12px;
+  padding: 18px;
+}
+.execution-steps li > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.execution-steps b {
+  font-size: 16px;
+}
+.execution-steps p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+.execution-impact {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid #0002;
+}
+.execution-impact span {
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.execution-impact b {
+  font-size: 20px;
+}
+.resolve-payment {
+  display: block;
+  margin: 18px 0 0;
+  background: #eff8c8;
+  color: #203b2b;
+  border: 0;
+  border-radius: 10px;
+  padding: 18px 24px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .scenario-execution {
+    padding: 20px;
+  }
+  .execution-result-head {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .execution-result-head h3,
+  .execution-http {
+    font-size: 25px;
+  }
+  .execution-steps {
+    grid-template-columns: 1fr;
+  }
+  .execution-impact {
+    gap: 18px;
+  }
+  .execution-result-head p {
+    font-size: 16px;
+  }
+}
