@@ -1,5 +1,10 @@
 # PJBL 3 — Desenvolvimento do Artefato (RA2)
 
+> Evolução posterior: o [agente com ferramentas e política](agente-ia.md) foi
+> implementado após os registros locais da versão 2 abaixo. Sua integração foi
+> testada com provedor simulado; a execução real depende das credenciais.
+
+
 ## Artefato e problema atendido
 
 O projeto investiga falhas em sistemas distribuídos e seus efeitos na operação

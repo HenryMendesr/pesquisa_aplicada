@@ -1616,3 +1616,112 @@ a:hover {
     min-height: 95px;
   }
 }
+
+.agent-panel {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  padding: 24px;
+  margin-bottom: 25px;
+}
+.agent-panel h2 {
+  font-size: 23px;
+}
+.agent-controls {
+  display: grid;
+  grid-template-columns: 140px 1fr auto auto;
+  gap: 12px;
+  align-items: end;
+}
+.agent-controls label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.agent-controls select,
+.agent-controls input {
+  width: 100%;
+  display: block;
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 10px;
+  font: inherit;
+  color: var(--ink);
+  font-size: 12px;
+  height: 41px;
+}
+.agent-controls .primary,
+.agent-controls .secondary {
+  margin: 0;
+  height: 41px;
+  width: auto;
+  padding: 10px 15px;
+}
+.agent-run-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.agent-run-heading:has(span:not(:empty)) {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.agent-trace {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 420px;
+  overflow: auto;
+}
+.agent-step {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8faf5;
+  min-width: 0;
+}
+.agent-step b {
+  display: block;
+  font-size: 10px;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+.agent-step span {
+  font-size: 11px;
+  display: block;
+  overflow-wrap: anywhere;
+}
+.agent-step code {
+  display: block;
+  font-size: 8px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.agent-step.applied {
+  border-color: #a3bf83;
+  background: #eef5e4;
+}
+@media (max-width: 800px) {
+  .agent-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+  .agent-trace {
+    grid-template-columns: 1fr;
+  }
+  .agent-panel {
+    padding: 18px;
+  }
+  .agent-run-heading {
+    flex-wrap: wrap;
+  }
+}

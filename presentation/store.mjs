@@ -23,6 +23,8 @@ let busy = false,
   testReport = null,
   storageAvailable = true,
   timer;
+let agentConfigured = false,
+  agentVerified = null;
 const icons = {
   headphones:
     '<path d="M28 83V60a32 32 0 0 1 64 0v23" fill="none" stroke="#665f83" stroke-width="12"/><rect x="20" y="60" width="20" height="38" rx="8" fill="#9186b1"/><rect x="80" y="60" width="20" height="38" rx="8" fill="#9186b1"/><path d="M30 41a34 34 0 0 1 58-2" fill="none" stroke="#c0b7da" stroke-width="4"/>',
@@ -41,10 +43,17 @@ function toast(message) {
   $("#toast").hidden = false;
   timer = setTimeout(() => ($("#toast").hidden = true), 6500);
 }
-async function call(body) {
+async function call(body, useExperiment = true) {
+  const headers = { "Content-Type": "application/json" };
+  if (
+    useExperiment &&
+    store.state.controlMode === "agent" &&
+    store.state.agentExperiment?.token
+  )
+    headers["X-Experiment-State"] = store.state.agentExperiment.token;
   const response = await fetch("/api/payments", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(body),
     cache: "no-store",
     signal: AbortSignal.timeout(12000),
@@ -83,6 +92,18 @@ function render() {
   const s = store.state,
     blocked = s.breaker !== "closed",
     unknown = s.attempt?.unknown;
+  const lastRun = s.agentRuns?.at(-1)?.run;
+  const currentRun =
+    s.controlMode === "agent" &&
+    lastRun &&
+    lastRun.experimentId === s.agentExperiment?.id &&
+    s.agentExperiment.revision === lastRun.revision + (lastRun.applied ? 1 : 0)
+      ? lastRun
+      : null;
+  const agentPayment = currentRun?.observations
+    .filter((item) => item.service === "payment")
+    .at(-1);
+
   $("#cart-count").textContent = s.cart.reduce((n, i) => n + i.quantity, 0);
   $("#cart-total").textContent = money(store.total());
   $("#cart-items").innerHTML = s.cart.length
@@ -118,8 +139,17 @@ function render() {
               )
             ? "Disponível"
             : "Não verificado";
+  if (!blocked && !unknown && s.controlMode === "agent")
+    $("#payment-status").textContent = agentPayment
+      ? agentPayment.status >= 500
+        ? "Falha observada"
+        : agentPayment.status === 402
+          ? "Recusa · serviço ativo"
+          : "Disponível"
+      : "Não verificado";
   $("#payment-dot").className =
-    "status-dot " + (blocked || unknown ? "bad" : "ok");
+    "status-dot " +
+    (blocked || unknown || agentPayment?.status >= 500 ? "bad" : "ok");
   $("#circuit-status").textContent = {
     open: "Aberto · compra protegida",
     "half-open": "Validando recuperação",
@@ -138,7 +168,10 @@ function render() {
     : "";
   $("#event-count").textContent = `${s.evidence.length} eventos`;
   $("#metric-evidence").textContent = `${s.evidence.length} eventos`;
-  const lastHttp = s.evidence.findLast((event) => event.status != null);
+  const lastHttp =
+    s.controlMode === "agent"
+      ? agentPayment
+      : s.evidence.findLast((event) => event.status != null);
   $("#metric-http").textContent = lastHttp
     ? `HTTP ${lastHttp.status}`
     : "Não verificada";
@@ -184,6 +217,30 @@ function render() {
   for (const id of ["recover", "analyze", "run-tests"])
     $("#" + id).disabled = busy || (id === "recover" && unknown);
   $("#export").disabled = busy;
+  const agentMode = s.controlMode === "agent";
+  $("#analyze").hidden = agentMode;
+  if (!diagnosis)
+    $("#diagnosis-mode").textContent = agentMode
+      ? "Sem execução"
+      : "Por regras";
+  $("#control-mode").value = agentMode ? "agent" : "rules";
+  $("#control-mode").disabled = busy;
+  $("#llm-token").disabled = busy;
+  $("#connect-agent").disabled = busy || !agentMode;
+  $("#run-agent").disabled =
+    busy || !agentMode || !agentConfigured || !s.agentExperiment;
+  if (agentMode && !s.agentExperiment)
+    document
+      .querySelectorAll("[data-scenario],#recover")
+      .forEach((button) => (button.disabled = true));
+  $("#action-source").textContent =
+    s.actionSource === "agent"
+      ? "Agente · política validada"
+      : s.actionSource === "rules"
+        ? "Regras"
+        : "—";
+  renderAgentTrace();
+
   if (diagnosis) {
     $("#diagnosis-mode").textContent =
       diagnosis.mode === "llm"
@@ -254,19 +311,162 @@ $("#reconcile").addEventListener("click", () =>
 document.querySelectorAll("[data-scenario]").forEach((b) =>
   b.addEventListener("click", () =>
     action(async () => {
-      await store.scenario(b.dataset.scenario);
-      diagnosis = rules(store.state.evidence);
-      toast("Cenário aplicado e resposta da API registrada.");
+      if (store.state.controlMode === "agent") {
+        const data = await agentRequest("/api/experiment", {
+          operation: "inject",
+          scenario: b.dataset.scenario,
+        });
+        store.injectExperiment(data, b.dataset.scenario);
+        toast("Falha configurada. Nenhuma ação do agente aplicada.");
+      } else {
+        await store.scenario(b.dataset.scenario);
+        diagnosis = rules(store.state.evidence);
+      }
     }),
   ),
 );
 $("#recover").addEventListener("click", () =>
   action(async () => {
-    if (await store.scenario("normal"))
-      toast("Pagamento restaurado e verificado. Sua compra pode continuar.");
-    diagnosis = rules(store.state.evidence);
+    if (store.state.controlMode === "agent") {
+      const data = await agentRequest("/api/experiment", {
+        operation: "inject",
+        scenario: "normal",
+      });
+      store.injectExperiment(data, "normal");
+      toast("Serviço restaurado. Execute o agente para verificar a liberação.");
+    } else {
+      if (await store.scenario("normal")) toast("Pagamento restaurado.");
+      diagnosis = rules(store.state.evidence);
+    }
   }),
 );
+async function agentRequest(path, body) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${$("#llm-token").value.trim()}`,
+      ...(store.state.agentExperiment?.token
+        ? { "X-Experiment-State": store.state.agentExperiment.token }
+        : {}),
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(55000),
+  });
+  const data = await response.json();
+  if (!response.ok && !data.run)
+    throw new Error(data.error || "Agente indisponível.");
+  return data;
+}
+function renderAgentTrace() {
+  const entry = store.state.agentRuns?.at(-1);
+  $("#verify-agent").hidden = !entry;
+  if (!entry) {
+    $("#agent-run-id").textContent = "";
+    $("#agent-trace").innerHTML = "";
+    return;
+  }
+  $("#agent-run-id").textContent =
+    `${entry.run.model} · ${entry.run.id}${agentVerified === true ? " · assinatura válida" : agentVerified === false ? " · assinatura inválida" : ""}`;
+  const labels = {
+    model_response: "Modelo",
+    tool_call: "Ferramenta",
+    tool_result: "Resultado",
+    action_proposed: "Proposta do agente",
+    policy_decision: "Política",
+    diagnosis: "Diagnóstico",
+    action_applied: "Ação aplicada",
+    no_action: "Sem alteração",
+    run_failed: "Falha na execução",
+  };
+  $("#agent-trace").innerHTML = entry.run.trace
+    .map((step) => {
+      let detail;
+      if (step.type === "model_response")
+        detail =
+          step.toolCalls.map((call) => call.name).join(", ") ||
+          "Resposta final";
+      else if (step.type === "tool_call")
+        detail = `${step.name} ${JSON.stringify(step.args)}`;
+      else if (step.type === "tool_result")
+        detail = `${step.service} · ${step.status} · ${JSON.stringify(step.result)}`;
+      else if (step.type === "action_proposed")
+        detail = `${step.action} · ${step.reason}`;
+      else if (step.type === "policy_decision")
+        detail = `${step.accepted ? "Aceita" : "Rejeitada"} · ${step.reason}`;
+      else if (step.type === "diagnosis") detail = step.summary;
+      else if (step.type === "action_applied")
+        detail = `${step.action} · ${step.before} → ${step.after}`;
+      else detail = step.error || "Nenhuma ação aplicada";
+      return `<li id="event-${esc(step.id)}" class="agent-step ${step.type === "action_applied" ? "applied" : ""}"><b>${esc(labels[step.type] || step.type)}</b><span>${esc(detail)}</span>${step.providerRequestId ? `<code>${esc(step.providerRequestId)}</code>` : ""}${step.id ? `<code>${esc(step.id)}</code>` : ""}</li>`;
+    })
+    .join("");
+}
+$("#control-mode").addEventListener("change", () => {
+  store.state.controlMode = $("#control-mode").value;
+  store.save();
+});
+$("#connect-agent").addEventListener("click", () =>
+  action(async () => {
+    if (store.state.attempt?.unknown)
+      throw new Error(
+        "Consulte o pagamento pendente antes de conectar outro experimento.",
+      );
+    store.connectExperiment(
+      await agentRequest("/api/experiment", { operation: "create" }),
+    );
+    store.event("experiment_connected", null, store.state.agentExperiment.id);
+    toast("Experimento conectado.");
+  }),
+);
+$("#run-agent").addEventListener("click", () =>
+  action(async () => {
+    $("#agent-status").textContent = "Executando";
+    try {
+      const data = await agentRequest("/api/agent", {
+        operation: "run",
+        pendingPayment: Boolean(store.state.attempt?.unknown),
+      });
+      store.applyAgentRun(data);
+      agentVerified = null;
+      if (data.run.status === "completed") {
+        diagnosis = {
+          ...data.run.diagnosis,
+          mode: "llm",
+          model: data.run.model,
+        };
+        // Agent references point to its tool observations, not the unrelated client logs.
+        $("#agent-status").textContent = "Concluído";
+      } else $("#agent-status").textContent = "Falhou · sem ação";
+    } catch (error) {
+      $("#agent-status").textContent = "Erro na execução";
+      throw error;
+    }
+  }),
+);
+$("#verify-agent").addEventListener("click", () =>
+  action(async () => {
+    const entry = store.state.agentRuns.at(-1);
+    const result = await agentRequest("/api/agent", {
+      operation: "verify",
+      run: entry.run,
+      signature: entry.signature,
+    });
+    agentVerified = result.valid;
+  }),
+);
+fetch("/api/agent", { cache: "no-store" })
+  .then((response) => response.json())
+  .then((data) => {
+    agentConfigured = data.configured;
+    $("#agent-status").textContent = agentConfigured
+      ? data.model
+      : "Não configurado";
+    render();
+  })
+  .catch(() => {
+    $("#agent-status").textContent = "Indisponível";
+  });
 $("#analyze").addEventListener("click", () =>
   action(async () => {
     const evidence = store.state.evidence.slice(-32),
@@ -302,7 +502,7 @@ $("#analyze").addEventListener("click", () =>
     }
   }),
 );
-export async function evaluate(api = call) {
+export async function evaluate(api = (body) => call(body, false)) {
   const results = [],
     evidence = [];
   const check = (value, message) => {
@@ -470,11 +670,16 @@ $("#run-tests").addEventListener("click", () =>
 $("#export").addEventListener("click", () => {
   const report = {
     artifact: "Nexo · Pesquisa Aplicada",
-    version: "2.0.0",
+    version: "3.0.0",
     exportedAt: new Date().toISOString(),
     scope:
       "Sandbox serverless, carrinho e evidências locais neste navegador. Nenhuma cobrança real, envio externo ou reparo por IA.",
-    state: store.state,
+    state: {
+      ...store.state,
+      agentExperiment: store.state.agentExperiment
+        ? { ...store.state.agentExperiment, token: undefined }
+        : null,
+    },
     diagnosis,
     evaluation: testReport,
   };

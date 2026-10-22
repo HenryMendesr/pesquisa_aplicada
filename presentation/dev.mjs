@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import payments from "./api/payments.mjs";
 import diagnose from "./api/diagnose.mjs";
+import agent from "./api/agent.mjs";
+import experiment from "./api/experiment.mjs";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const server = http.createServer(async (req, res) => {
   const pathname = new URL(req.url, "http://localhost").pathname;
@@ -16,7 +18,13 @@ const server = http.createServer(async (req, res) => {
     res.end(JSON.stringify(value));
   };
   try {
-    if (pathname === "/api/payments" || pathname === "/api/diagnose") {
+    const handlers = {
+      "/api/payments": payments,
+      "/api/diagnose": diagnose,
+      "/api/agent": agent,
+      "/api/experiment": experiment,
+    };
+    if (handlers[pathname]) {
       let body = "";
       for await (const chunk of req) {
         body += chunk;
@@ -28,10 +36,7 @@ const server = http.createServer(async (req, res) => {
       } catch {
         return res.status(400).json({ error: "JSON inválido." });
       }
-      return await (pathname.endsWith("payments") ? payments : diagnose)(
-        req,
-        res,
-      );
+      return await handlers[pathname](req, res);
     }
     const files = {
       "/": "index.html",

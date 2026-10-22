@@ -1,5 +1,10 @@
 # PBL 8 — DSR Etapa 5: melhorias do artefato
 
+> Evolução posterior: o [agente com ferramentas e política](agente-ia.md) foi
+> implementado após os registros locais da versão 2 abaixo. Sua integração foi
+> testada com provedor simulado; a execução real depende das credenciais.
+
+
 ## Problema e objetivo do refinamento
 
 A versão anterior demonstrava diagnóstico na consulta Gateway → Orders → Users.

@@ -35,6 +35,10 @@ export const fresh = () => ({
   evidence: [],
   orders: [],
   attempt: null,
+  controlMode: "agent",
+  agentExperiment: null,
+  agentRuns: [],
+  actionSource: null,
 });
 export function readState(storage) {
   try {
@@ -150,13 +154,16 @@ export class Store {
     );
     return result;
   }
-  openCircuit() {
+  openCircuit(source = "rules") {
+    this.state.actionSource = source;
     this.state.breaker = "open";
     this.state.incident ||= crypto.randomUUID();
     this.event(
       "circuit_opened",
       null,
-      "Proteção por regra técnica; novas finalizações suspensas. A IA não executou esta ação.",
+      source === "agent"
+        ? "Isolamento aplicado após decisão do agente e validação da política."
+        : "Proteção por regra técnica; novas finalizações suspensas. A IA não executou esta ação.",
     );
   }
   async scenario(scenario) {
@@ -194,37 +201,96 @@ export class Store {
           return false;
         }
       }
-      this.state.breaker = "closed";
-      this.event(
-        "circuit_closed",
-        200,
-        "Duas sondagens funcionais confirmaram a recuperação no sandbox.",
-      );
-      if (
-        this.state.subscription?.incident === this.state.incident &&
-        !this.state.subscription.sent
-      ) {
-        this.state.subscription.sent = true;
-        this.state.notices = this.state.notices.slice(-19);
-        this.state.notices.push({
-          id: crypto.randomUUID(),
-          incident: this.state.incident,
-          at: new Date().toISOString(),
-          text: "O pagamento voltou a funcionar. Seu carrinho está salvo; você já pode retomar a compra.",
-        });
-        this.event(
-          "recovery_notice_created",
-          null,
-          "Aviso interno único, solicitado pelo comprador. Nenhum e-mail enviado.",
-        );
-      }
-      this.state.incident = null;
-      this.save();
+      this.closeCircuit();
     } else {
       const response = await this.request("probe");
       if (response.status >= 500 && scenario !== "slow") this.openCircuit();
     }
     return true;
+  }
+  closeCircuit(source = "rules") {
+    this.state.actionSource = source;
+    this.state.breaker = "closed";
+    this.event(
+      "circuit_closed",
+      200,
+      source === "agent"
+        ? "Liberação aplicada após decisão do agente e validação da política."
+        : "Duas sondagens funcionais confirmaram a recuperação no sandbox.",
+    );
+    if (
+      this.state.subscription?.incident === this.state.incident &&
+      !this.state.subscription.sent
+    ) {
+      this.state.subscription.sent = true;
+      this.state.notices = this.state.notices.slice(-19);
+      this.state.notices.push({
+        id: crypto.randomUUID(),
+        incident: this.state.incident,
+        at: new Date().toISOString(),
+        text: "O pagamento voltou a funcionar. Seu carrinho está salvo; você já pode retomar a compra.",
+      });
+      this.event(
+        "recovery_notice_created",
+        null,
+        "Aviso interno único, solicitado pelo comprador. Nenhum e-mail enviado.",
+      );
+    }
+    this.state.incident = null;
+    this.save();
+  }
+  connectExperiment(payload) {
+    if (
+      !payload?.experiment ||
+      !["closed", "open"].includes(payload.experiment.checkout) ||
+      typeof payload.stateToken !== "string"
+    )
+      throw new Error("Experimento inválido.");
+    this.state.agentExperiment = {
+      ...payload.experiment,
+      token: payload.stateToken,
+    };
+    this.state.breaker = payload.experiment.checkout;
+    this.save();
+  }
+  injectExperiment(payload, scenario) {
+    this.state.agentExperiment = {
+      ...payload.experiment,
+      token: payload.stateToken,
+    };
+    this.state.scenario = scenario;
+    this.event("fault_injected", null, scenario);
+    // No isolation action here. The model must investigate and propose it.
+  }
+  applyAgentRun(payload) {
+    const current = this.state.agentExperiment;
+    if (
+      !current ||
+      payload.run.experimentId !== current.id ||
+      payload.run.revision !== current.revision
+    )
+      throw new Error("Execução desatualizada. Execute o agente novamente.");
+    this.state.agentRuns ||= [];
+    this.state.agentRuns.push({
+      run: payload.run,
+      signature: payload.signature,
+    });
+    this.state.agentRuns = this.state.agentRuns.slice(-10);
+    if (payload.run.status === "completed") {
+      this.state.agentExperiment = {
+        ...payload.experiment,
+        token: payload.stateToken,
+      };
+      if (payload.run.applied?.action === "isolate_checkout")
+        this.openCircuit("agent");
+      if (payload.run.applied?.action === "resume_checkout")
+        this.closeCircuit("agent");
+    }
+    this.event(
+      payload.run.status === "completed" ? "agent_completed" : "agent_failed",
+      null,
+      payload.run.id,
+    );
   }
   subscribe() {
     if (!this.state.incident)

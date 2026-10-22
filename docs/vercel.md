@@ -1,5 +1,8 @@
 # Publicar e executar na Vercel
 
+Para o modo com ferramentas e ações do agente, consulte [Agente IA](agente-ia.md).
+A tela inicia nesse modo; selecione **Regras** para executar os cenários sem LLM.
+
 A versão 2 funciona sem VPS: HTML e funções Node de pagamento sandbox ficam na
 Vercel. Não usa banco, Docker ou Neon para a demonstração de compra. Carrinho,
 circuito, avisos e evidências ficam no navegador. Pagamentos não são reais.

@@ -53,7 +53,44 @@
           <span>Proteção do pagamento</span
           ><strong id="metric-isolation">Liberado</strong>
         </article>
-        <article><span>Eventos</span><strong id="metric-evidence">0 eventos</strong></article>
+        <article>
+          <span>Eventos</span><strong id="metric-evidence">0 eventos</strong>
+        </article>
+      </section>
+      <section class="agent-panel" id="agent-panel">
+        <div class="panel-heading">
+          <h2>Agente IA</h2>
+          <span id="agent-status" class="mode-tag"
+            >Verificando configuração</span
+          >
+        </div>
+        <div class="agent-controls">
+          <label
+            >Controle<select id="control-mode">
+              <option value="agent">Agente IA</option>
+              <option value="rules">Regras</option>
+            </select></label
+          >
+          <label
+            >Token do apresentador<input
+              type="password"
+              id="llm-token"
+              autocomplete="off"
+          /></label>
+          <button id="connect-agent" class="secondary">
+            Conectar experimento
+          </button>
+          <button id="run-agent" class="primary" disabled>
+            Executar agente
+          </button>
+        </div>
+        <div class="agent-run-heading">
+          <span id="agent-run-id"></span
+          ><button id="verify-agent" class="text-btn" hidden>
+            Verificar registro
+          </button>
+        </div>
+        <ol id="agent-trace" class="agent-trace"></ol>
       </section>
       <section class="lab" id="lab">
         <div class="lab-head">
@@ -78,7 +115,7 @@
               <button id="recover" class="recover-btn">
                 ↻ Restaurar e verificar pagamento</button
               ><button id="run-tests" class="test-btn">
-                ▷ Executar os 8 testes
+                ▷ Testes funcionais (8)
               </button>
             </div>
           </div>
@@ -100,6 +137,9 @@
               ><b id="circuit-status">Circuito fechado</b>
             </div>
 
+            <div class="status-row">
+              <span>Última ação</span><b id="action-source">—</b>
+            </div>
             <div class="architecture">
               <span>Navegador</span><b>→</b><span>API Vercel</span><b>→</b
               ><span>Pagamento sandbox</span>
@@ -162,23 +202,12 @@
             <button id="analyze" class="secondary">
               Analisar evidências atuais <span>↗</span>
             </button>
-            <details class="llm-settings">
-              <summary>Usar LLM real (opcional)</summary>
-              <label
-                >Token do apresentador<input
-                  type="password"
-                  id="llm-token"
-                  autocomplete="off"
-                  placeholder="Configurado no backend da Vercel"
-              /></label>
-            </details>
           </div>
         </div>
       </section>
       <details class="application-demo" id="application">
         <summary>
           <div>
-
             <h2>Compra e carrinho</h2>
           </div>
           <span class="expand-label">Abrir demonstração +</span>

@@ -26,12 +26,23 @@ Na Vercel: **Root Directory `presentation`**, Framework **Other**, build
 mesma origem. [Guia de publicação](docs/vercel.md).
 
 Os pagamentos e falhas são controlados; nenhum valor é cobrado. Carrinho,
-comprovantes, avisos e evidências são locais ao navegador. A análise padrão é
-**por regras, sem IA**; a integração opcional de LLM exige configuração no
-servidor. O painel Docker anterior permanece em `presentation/docker.html`.
+comprovantes, avisos e evidências são locais ao navegador. O modo **Regras**
+funciona sem IA; o modo **Agente IA** exige configuração no servidor. O painel Docker anterior permanece em `presentation/docker.html`.
 
 - [PBL 8 — melhorias e avaliação](docs/pbl8-melhorias.md).
 - [PJBL 3 — construção, demonstração e evidências](docs/pjbl3-artefato.md).
+
+## Agente IA
+
+O modo **Agente IA** separa a injeção de falha da decisão do modelo. O agente
+seleciona ferramentas, propõe uma ação e só a aplica após validação da política.
+A interface mostra a trilha de execução e permite verificar seu registro assinado.
+[Configuração e roteiro de demonstração](docs/agente-ia.md).
+
+Sem provedor configurado, o agente fica indisponível. O modo **Regras** e os oito
+testes funcionais continuam utilizáveis; seus resultados não são apresentados
+como execução real de IA. O modelo encontrado nas evidências históricas é
+`gpt-4.1-mini`; URL e credenciais não estão versionadas.
 
 ## Entregas acadêmicas
 
